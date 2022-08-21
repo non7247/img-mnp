@@ -20,16 +20,27 @@
         </style>
     </head>
     <body>
-        <canvas id="canvas" width="251" height="197"></canvas>
         <form>
-            <input type="radio" id="original" name="color" value="original" checked>
-            <label for="original">Original</label>
-            <input type="radio" id="grayscale" name="color" value="grayscale">
-            <label for"grayscale">GrayScale</label>
-            <input type="radio" id="inverted" name="color" value="inverted">
-            <label for="inverted">Inverted</label>
-            <input type="radio" id="sepia" name="color" value="sepia">
-            <label for="sepia">Sepia</label>
+            <table>
+                <tr>
+                    <td><input id="target" type="file" multiple></td>
+                </tr>
+                <tr>
+                    <td><canvas id="canvas" width="251" height="197"></canvas></td>
+                </tr>
+                <tr>
+                    <td>
+                        <input type="radio" id="original" name="color" value="original" checked>
+                        <label for="original">Original</label>
+                        <input type="radio" id="grayscale" name="color" value="grayscale">
+                        <label for"grayscale">GrayScale</label>
+                        <input type="radio" id="inverted" name="color" value="inverted">
+                        <label for="inverted">Inverted</label>
+                        <input type="radio" id="sepia" name="color" value="sepia">
+                        <label for="sepia">Sepia<label>
+                    </td>
+                </tr>
+            </table>
         </form>
     </body>
     <script src="main.js"></script>

@@ -3,7 +3,6 @@ const invoke = window.__TAURI__.invoke
 
 var img = new Image();
 img.crossOrigin = "anonymous";
-img.src = './assets/tabby.JPG';
 
 var canvas = document.getElementById('canvas');
 var ctx = canvas.getContext('2d');
@@ -23,12 +22,6 @@ var sepia = function() {
 
 var invert = function() {
     console.log("invert");
-    ctx.drawImage(img, 0, 0);
-    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    invoke('img_invert', { pixels: imageData.data.buffer }).then(respose => {
-        imageData.data = respose;
-    });
-    ctx.putImageData(imageData, 0, 0);
 }
 
 var grayscale = function() {
@@ -50,3 +43,10 @@ for (const input of inputs) {
         }
     });
 }
+
+document.getElementById("target").addEventListener("change", function() {
+    const fileList = this.files;
+    const blbUrl = window.URL.createObjectURL(fileList[0]);
+    console.log(blbUrl);
+    img.src = blbUrl;
+});

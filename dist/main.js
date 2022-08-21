@@ -25,7 +25,7 @@ var invert = function() {
     console.log("invert");
     ctx.drawImage(img, 0, 0);
     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    invoke('img_invert', { pixels: imageData.data }).then(respose => {
+    invoke('img_invert', { pixels: imageData.data.buffer }).then(respose => {
         imageData.data = respose;
     });
     ctx.putImageData(imageData, 0, 0);

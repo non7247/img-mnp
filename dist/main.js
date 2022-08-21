@@ -1,30 +1,30 @@
 // access the pre-bundled global API function
 const invoke = window.__TAURI__.invoke
 
-var img = new Image();
+const img = new Image();
 img.crossOrigin = "anonymous";
 
-var canvas = document.getElementById('canvas');
-var ctx = canvas.getContext('2d');
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
 
 img.onload = function() {
     ctx.drawImage(img, 0, 0);
 }
 
-var original = function() {
+const original = function() {
     console.log("original");
     ctx.drawImage(img, 0, 0);
 }
 
-var sepia = function() {
+const sepia = function() {
     console.log("sepia");
 }
 
-var invert = function() {
+const invert = function() {
     console.log("invert");
 }
 
-var grayscale = function() {
+const grayscale = function() {
     console.log("grayscale");
 }
 

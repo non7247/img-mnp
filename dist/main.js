@@ -1,5 +1,5 @@
-// access the pre-bundled global API function
-const invoke = window.__TAURI__.invoke
+const dialogOpen = window.__TAURI__.dialog.open;
+const invoke = window.__TAURI__.tauri.invoke;
 
 const img = new Image();
 img.crossOrigin = "anonymous";
@@ -49,4 +49,10 @@ document.getElementById("target").addEventListener("change", function() {
     const blbUrl = window.URL.createObjectURL(fileList[0]);
     console.log(blbUrl);
     img.src = blbUrl;
+});
+
+document.getElementById("files").addEventListener('click', function() {
+    dialogOpen().then(paths => {
+        console.log(paths);
+    });
 });

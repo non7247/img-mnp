@@ -15,6 +15,10 @@
     "allowlist": {
       "dialog": {
         "open": true
+      },
+      "protocol": {
+        "asset": true,
+        "assetScope": [ "**"]
       }
     },
     "bundle": {

@@ -45,11 +45,16 @@ for (const input of inputs) {
     });
 }
 
-document.getElementById("files").addEventListener('click', function() {
+document.getElementById("file_select").addEventListener('click', function() {
     dialogOpen().then(path => {
-        console.log(path.replace(/\\/g,'/'));
-        const imgSrc = convertFileSrc(path.replace(/\\/g,'/'));
-        console.log(imgSrc);
-        img.src = imgSrc;
+        if (path) {
+            invoke('set_original_path', { path: path.replace(/\\/g,'/') });
+            invoke('get_original_path').then(response => {
+                console.log(response);
+                const imgSrc = convertFileSrc(response);
+                console.log(imgSrc);
+                img.src = imgSrc;
+            });
+        }
     });
 });

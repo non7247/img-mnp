@@ -54,10 +54,12 @@ impl ImagePathState {
         let work_name = format!("$$$_{}", file_name);
         let work_path = original_path.with_file_name(work_name);
 
-        match work_path.to_str() {
+        image_path.work = match work_path.to_str() {
             Some(s) => String::from(s),
             None => String::from(""),
-        }
+        };
+        image_path.work = image_path.work.replace("\\", "/");
+        image_path.work.clone()
     }
 }
 

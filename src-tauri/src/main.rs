@@ -4,6 +4,7 @@
 )]
 
 use std::sync::Mutex;
+use std::path::Path;
 use tauri::{Manager, State};
 
 #[derive(Debug)]
@@ -35,6 +36,29 @@ impl ImagePathState {
 
         image_path.original.clone()
     }
+
+    pub fn make_work_path(&self) -> String {
+        let mut image_path = self.state.lock().unwrap();
+
+        let original_path = Path::new(&image_path.original);
+        let file_name = match original_path
+            .file_name()
+            .and_then(|s| s.to_str()) {
+                Some(s) => s,
+                None => {
+                    image_path.work = String::from("");
+                    return image_path.work.clone();
+                },
+        };
+
+        let work_name = format!("$$$_{}", file_name);
+        let work_path = original_path.with_file_name(work_name);
+
+        match work_path.to_str() {
+            Some(s) => String::from(s),
+            None => String::from(""),
+        }
+    }
 }
 
 fn main() {
@@ -42,7 +66,7 @@ fn main() {
     .invoke_handler(tauri::generate_handler![
         set_original_path,
         get_original_path,
-        img_invert,
+        convert_to_invert,
     ])
     .setup(|app| {
         let image_path_state = ImagePathState::new();
@@ -65,8 +89,6 @@ fn get_original_path(image_path_state: State<'_, ImagePathState>) -> String {
 }
 
 #[tauri::command]
-fn img_invert() -> String {
-    let result = String::from("");
-
-    result
+fn convert_to_invert(image_path_state: State<'_, ImagePathState>) -> String {
+    image_path_state.make_work_path()
 }

@@ -23,6 +23,9 @@ const sepia = function() {
 
 const invert = function() {
     console.log("invert");
+    invoke('convert_to_invert').then(response => {
+        console.log(response);
+    });
 }
 
 const grayscale = function() {

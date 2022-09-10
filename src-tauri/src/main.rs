@@ -84,12 +84,32 @@ fn make_invert_image(original_path: &str, work_path: &str) -> std::io::Result<()
     Ok(())
 }
 
+fn make_grayscale_image(original_path: &str, work_path: &str) -> std::io::Result<()> {
+    if Path::new(work_path).exists() {
+        fs::remove_file(work_path)?;
+    }
+
+    let img = image::open(original_path).unwrap();
+    let mut img = img.to_rgb8();
+
+    for (_x, _y, pixel) in img.enumerate_pixels_mut() {
+        let gray = pixel[0] as f64 * 0.3 + pixel[1] as f64 * 0.59 + pixel[2] as f64 * 0.11;
+        let g = gray as u8;
+        *pixel = image::Rgb([g, g, g]);
+    }
+
+    img.save(work_path).unwrap();
+
+    Ok(())
+}
+
 fn main() {
   tauri::Builder::default()
     .invoke_handler(tauri::generate_handler![
         set_original_path,
         get_original_path,
         convert_to_invert,
+        convert_to_grayscale,
     ])
     .setup(|app| {
         let image_path_state = ImagePathState::new();
@@ -120,6 +140,22 @@ fn convert_to_invert(image_path_state: State<'_, ImagePathState>) -> String {
         Ok(()) => (),
         Err(err) => {
             println!("{}", err);
+            return String::from("");
+        },
+    }
+
+    work_path
+}
+
+#[tauri::command]
+fn convert_to_grayscale(image_path_state: State<'_, ImagePathState>) -> String {
+    let original_path = image_path_state.get_original();
+    let work_path = image_path_state.make_work_path();
+
+    match make_grayscale_image(&original_path, &work_path) {
+        Ok(()) => (),
+        Err(err) => {
+            print!("{}", err);
             return String::from("");
         },
     }

@@ -37,13 +37,22 @@ const invert = function() {
         const imgSrc = convertFileSrc(response);
         console.log(imgSrc);
 
-        img.src = imgSrc;
+        img.src = imgSrc + "?invert";
         ctx.drawImage(img, 0, 0);
     });
 }
 
 const grayscale = function() {
     console.log("grayscale");
+    invoke('convert_to_grayscale').then(response => {
+        console.log(response);
+
+        const imgSrc = convertFileSrc(response);
+        console.log(imgSrc);
+
+        img.src = imgSrc + "?grayscale";
+        ctx.drawImage(img, 0, 0);
+    });
 }
 
 const inputs = document.querySelectorAll('[name=color]');

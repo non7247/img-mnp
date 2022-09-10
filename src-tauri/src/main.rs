@@ -7,7 +7,6 @@ use std::sync::Mutex;
 use std::path::Path;
 use std::fs;
 use tauri::{Manager, State};
-use image::GenericImageView;
 
 #[derive(Debug)]
 struct ImagePath {
@@ -65,12 +64,22 @@ impl ImagePathState {
     }
 }
 
-fn copy_work_file(original_path: &str, work_path: &str) -> std::io::Result<()> {
+fn make_invert_image(original_path: &str, work_path: &str) -> std::io::Result<()> { 
     if Path::new(work_path).exists() {
         fs::remove_file(work_path)?;
     }
 
-    fs::copy(original_path, work_path)?;
+    let img = image::open(original_path).unwrap();
+    let mut img = img.to_rgb8();
+
+    for (_x, _y, pixel) in img.enumerate_pixels_mut() {
+        let r = 255 - pixel[0];
+        let g = 255 - pixel[1];
+        let b = 255 - pixel[2];
+        *pixel = image::Rgb([r, g, b]);
+    }
+
+    img.save(work_path).unwrap();
 
     Ok(())
 }
@@ -107,8 +116,8 @@ fn convert_to_invert(image_path_state: State<'_, ImagePathState>) -> String {
     let original_path = image_path_state.get_original();
     let work_path = image_path_state.make_work_path();
 
-    match copy_work_file(&original_path, &work_path) {
-        Ok(()) => {},
+    match make_invert_image(&original_path, &work_path) {
+        Ok(()) => (),
         Err(err) => {
             println!("{}", err);
             return String::from("");

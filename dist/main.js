@@ -14,7 +14,15 @@ img.onload = function() {
 
 const original = function() {
     console.log("original");
-    ctx.drawImage(img, 0, 0);
+    invoke('get_original_path').then(response => {
+        console.log(response);
+
+        const imgSrc = convertFileSrc(response);
+        console.log(imgSrc);
+
+        img.src = imgSrc;
+        ctx.drawImage(img, 0, 0);
+    });
 }
 
 const sepia = function() {
@@ -25,6 +33,12 @@ const invert = function() {
     console.log("invert");
     invoke('convert_to_invert').then(response => {
         console.log(response);
+
+        const imgSrc = convertFileSrc(response);
+        console.log(imgSrc);
+
+        img.src = imgSrc;
+        ctx.drawImage(img, 0, 0);
     });
 }
 

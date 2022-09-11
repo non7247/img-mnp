@@ -94,8 +94,32 @@ fn make_grayscale_image(original_path: &str, work_path: &str) -> std::io::Result
 
     for (_x, _y, pixel) in img.enumerate_pixels_mut() {
         let gray = pixel[0] as f64 * 0.3 + pixel[1] as f64 * 0.59 + pixel[2] as f64 * 0.11;
-        let g = gray as u8;
-        *pixel = image::Rgb([g, g, g]);
+        let gray = gray as u8;
+        *pixel = image::Rgb([gray, gray, gray]);
+    }
+
+    img.save(work_path).unwrap();
+
+    Ok(())
+}
+fn make_sepia_image(original_path: &str, work_path: &str) -> std::io::Result<()> {
+    if Path::new(work_path).exists() {
+        fs::remove_file(work_path)?;
+    }
+
+    let img = image::open(original_path).unwrap();
+    let mut img = img.to_rgb8();
+
+    for (_x, _y, pixel) in img.enumerate_pixels_mut() {
+        let r = pixel[0] as f64 * 0.393 + pixel[1] as f64 * 0.769 + pixel[2] as f64 * 0.189;
+        let g = pixel[0] as f64 * 0.349 + pixel[1] as f64 * 0.686 + pixel[2] as f64 * 0.168;
+        let b = pixel[0] as f64 * 0.272 + pixel[1] as f64 * 0.534 + pixel[2] as f64 * 0.131;
+        
+        let r = if r > 255.0 { 255 as u8 } else { r as u8 };
+        let g = if g > 255.0 { 255 as u8 } else { g as u8 };
+        let b = if b > 255.0 { 255 as u8 } else { b as u8 };
+
+        *pixel = image::Rgb([r, g, b]);
     }
 
     img.save(work_path).unwrap();
@@ -110,6 +134,7 @@ fn main() {
         get_original_path,
         convert_to_invert,
         convert_to_grayscale,
+        convert_to_sepia,
     ])
     .setup(|app| {
         let image_path_state = ImagePathState::new();
@@ -156,6 +181,22 @@ fn convert_to_grayscale(image_path_state: State<'_, ImagePathState>) -> String {
         Ok(()) => (),
         Err(err) => {
             print!("{}", err);
+            return String::from("");
+        },
+    }
+
+    work_path
+}
+
+#[tauri::command]
+fn convert_to_sepia(image_path_state: State<'_, ImagePathState>) -> String {
+    let original_path = image_path_state.get_original();
+    let work_path = image_path_state.make_work_path();
+
+    match make_sepia_image(&original_path, &work_path) {
+        Ok(()) => (),
+        Err(err) => {
+            println!("{}", err);
             return String::from("");
         },
     }

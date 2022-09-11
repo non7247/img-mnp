@@ -27,6 +27,15 @@ const original = function() {
 
 const sepia = function() {
     console.log("sepia");
+    invoke('convert_to_sepia').then(response => {
+        console.log(response);
+
+        const imgSrc = convertFileSrc(response);
+        console.log(imgSrc);
+
+        img.src = imgSrc + "?sepia";
+        ctx.drawImage(img, 0, 0);
+    });
 }
 
 const invert = function() {

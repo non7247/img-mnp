@@ -161,12 +161,9 @@ fn convert_to_invert(image_path_state: State<'_, ImagePathState>) -> String {
     let original_path = image_path_state.get_original();
     let work_path = image_path_state.make_work_path();
 
-    match make_invert_image(&original_path, &work_path) {
-        Ok(()) => (),
-        Err(err) => {
-            println!("{}", err);
-            return String::from("");
-        },
+    if let Err(err) = make_invert_image(&original_path, &work_path) {
+        println!("{}", err);
+        return String::from("");
     }
 
     work_path
@@ -177,12 +174,9 @@ fn convert_to_grayscale(image_path_state: State<'_, ImagePathState>) -> String {
     let original_path = image_path_state.get_original();
     let work_path = image_path_state.make_work_path();
 
-    match make_grayscale_image(&original_path, &work_path) {
-        Ok(()) => (),
-        Err(err) => {
-            print!("{}", err);
-            return String::from("");
-        },
+    if let Err(err) = make_grayscale_image(&original_path, &work_path) {
+        println!("{}", err);
+        return String::from("");
     }
 
     work_path
@@ -193,12 +187,9 @@ fn convert_to_sepia(image_path_state: State<'_, ImagePathState>) -> String {
     let original_path = image_path_state.get_original();
     let work_path = image_path_state.make_work_path();
 
-    match make_sepia_image(&original_path, &work_path) {
-        Ok(()) => (),
-        Err(err) => {
-            println!("{}", err);
-            return String::from("");
-        },
+    if let Err(err) = make_sepia_image(&original_path, &work_path) {
+        println!("{}", err);
+        return String::from("");
     }
 
     work_path

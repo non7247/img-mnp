@@ -9,7 +9,7 @@ const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
 
 img.onload = function() {
-    ctx.drawImage(img, 0, 0);
+    ctx.drawImage(img, 0, 0, 500, 392);
 }
 
 const original = function() {
@@ -21,7 +21,7 @@ const original = function() {
         console.log(imgSrc);
 
         img.src = imgSrc;
-        ctx.drawImage(img, 0, 0);
+        ctx.drawImage(img, 0, 0, 500, 392);
     });
 }
 
@@ -34,7 +34,7 @@ const sepia = function() {
         console.log(imgSrc);
 
         img.src = imgSrc + "?sepia";
-        ctx.drawImage(img, 0, 0);
+        ctx.drawImage(img, 0, 0, 500, 392);
     });
 }
 
@@ -47,7 +47,7 @@ const invert = function() {
         console.log(imgSrc);
 
         img.src = imgSrc + "?invert";
-        ctx.drawImage(img, 0, 0);
+        ctx.drawImage(img, 0, 0, 500, 392);
     });
 }
 
@@ -60,7 +60,7 @@ const grayscale = function() {
         console.log(imgSrc);
 
         img.src = imgSrc + "?grayscale";
-        ctx.drawImage(img, 0, 0);
+        ctx.drawImage(img, 0, 0, 500, 392);
     });
 }
 

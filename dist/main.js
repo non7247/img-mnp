@@ -8,6 +8,8 @@ img.crossOrigin = "anonymous";
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
 
+let originalSrc = "";
+
 img.onload = function() {
     ctx.drawImage(img, 0, 0, 500, 392);
 }
@@ -40,6 +42,7 @@ const sepia = function() {
 
 const invert = function() {
     console.log("invert");
+/*
     invoke('convert_to_invert').then(response => {
         console.log(response);
 
@@ -48,6 +51,18 @@ const invert = function() {
 
         img.src = imgSrc + "?invert";
         ctx.drawImage(img, 0, 0, 500, 392);
+    });
+*/
+    img.src = originalSrc;
+    ctx.drawImage(img, 0, 0, 500, 392);
+    const imageData = ctx.getImageData(0, 0, 500, 392);
+    const data = imageData.data;
+    const ary = Array.from(data);
+    invoke('convert_to_invert_array', { pixels: ary }).then(response => {
+        for (let i = 0; i < response.length; ++i) {
+            data[i] = response[i];
+        }
+        ctx.putImageData(imageData, 0, 0);
     });
 }
 
@@ -89,7 +104,10 @@ document.getElementById("file_select").addEventListener('click', function() {
                 const imgSrc = convertFileSrc(response);
                 console.log(imgSrc);
                 img.src = imgSrc;
+
+                originalSrc = imgSrc;
             });
+            document.getElementById("original").checked = true;
         }
     });
 });

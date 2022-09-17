@@ -135,6 +135,7 @@ fn main() {
         convert_to_invert,
         convert_to_grayscale,
         convert_to_sepia,
+        convert_to_invert_array,
     ])
     .setup(|app| {
         let image_path_state = ImagePathState::new();
@@ -193,4 +194,19 @@ fn convert_to_sepia(image_path_state: State<'_, ImagePathState>) -> String {
     }
 
     work_path
+}
+
+#[tauri::command]
+fn convert_to_invert_array(pixels: Vec<u8>) -> Vec<u8> {
+    let mut result = Vec::new();
+    result.reserve(pixels.len() - 1);
+
+    for i in (0..pixels.len() - 1).step_by(4) {
+        result.push(255 - pixels[i]);
+        result.push(255 - pixels[i + 1]);
+        result.push(255 - pixels[i + 2]);
+        result.push(pixels[i + 3]);
+    }
+
+    result
 }

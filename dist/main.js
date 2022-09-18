@@ -29,6 +29,7 @@ const original = function() {
 
 const sepia = function() {
     console.log("sepia");
+/*
     invoke('convert_to_sepia').then(response => {
         console.log(response);
 
@@ -37,6 +38,18 @@ const sepia = function() {
 
         img.src = imgSrc + "?sepia";
         ctx.drawImage(img, 0, 0, 500, 392);
+    });
+*/
+    img.src = originalSrc;
+    ctx.drawImage(img, 0, 0, 500, 392);
+    const imageData = ctx.getImageData(0, 0, 500, 392);
+    const data = imageData.data;
+    const ary = Array.from(data);
+    invoke('convert_to_sepia_array', { pixels: ary }).then(response => {
+        for (let i = 0; i < response.length; ++i) {
+            data[i] = response[i];
+        }
+        ctx.putImageData(imageData, 0, 0);
     });
 }
 
@@ -68,6 +81,7 @@ const invert = function() {
 
 const grayscale = function() {
     console.log("grayscale");
+/*
     invoke('convert_to_grayscale').then(response => {
         console.log(response);
 
@@ -76,6 +90,18 @@ const grayscale = function() {
 
         img.src = imgSrc + "?grayscale";
         ctx.drawImage(img, 0, 0, 500, 392);
+    });
+*/
+    img.src = originalSrc;
+    ctx.drawImage(img, 0, 0, 500, 392);
+    const imageData = ctx.getImageData(0, 0, 500, 392);
+    const data = imageData.data;
+    const ary = Array.from(data);
+    invoke('convert_to_grayscale_array', { pixels: ary }).then(response => {
+        for (let i = 0; i < response.length; ++i) {
+            data[i] = response[i];
+        }
+        ctx.putImageData(imageData, 0, 0);
     });
 }
 

@@ -37,10 +37,12 @@ impl ImagePathState {
     pub fn set_original_pixels(&self, pixels: &Vec<u8>) {
         let mut image_path = self.state.lock().unwrap();
 
+        image_path.original_pixels.clear();
         image_path.original_pixels.reserve(pixels.len());
         for pixel in pixels {
             image_path.original_pixels.push(*pixel);
         }
+        println!("original_pixels.len: {}", image_path.original_pixels.len());
     }
 
     pub fn get_original(&self) -> String {
@@ -72,6 +74,81 @@ impl ImagePathState {
         };
         image_path.work = image_path.work.replace("\\", "/");
         image_path.work.clone()
+    }
+
+    pub fn make_invert_array(&self) -> Vec<u8> {
+        let mut result: Vec<u8> = Vec::new();
+
+        let image_path = self.state.lock().unwrap();
+        if image_path.original_pixels.len() > 0 {
+            let pixels = &image_path.original_pixels;
+            result.reserve(pixels.len());
+
+            for i in (0..pixels.len()).step_by(4) {
+                result.push(255 - pixels[i]);
+                result.push(255 - pixels[i + 1]);
+                result.push(255 - pixels[i + 2]);
+                result.push(pixels[i + 3]);
+            }
+        }
+
+        result
+    }
+
+    pub fn make_grayscale_array(&self) -> Vec<u8> {
+        let mut result: Vec<u8> = Vec::new();
+
+        let image_path = self.state.lock().unwrap();
+        if image_path.original_pixels.len() > 0 {
+            let pixels = &image_path.original_pixels;
+            result.reserve(pixels.len());
+
+            for i in (0..pixels.len()).step_by(4) {
+                let gray = pixels[i] as f64 * 0.3
+                    + pixels[i + 1] as f64 * 0.59
+                    + pixels[i + 2] as f64 * 0.11;
+                let gray = gray as u8;
+                result.push(gray);
+                result.push(gray);
+                result.push(gray);
+                result.push(pixels[i + 3]);
+            }
+        }
+
+        result
+    }
+
+    pub fn make_sepia_array(&self) -> Vec<u8> {
+        let mut result: Vec<u8> = Vec::new();
+
+        let image_path = self.state.lock().unwrap();
+        if image_path.original_pixels.len() > 0 {
+            let pixels = &image_path.original_pixels;
+            result.reserve(pixels.len());
+
+            for i in (0..pixels.len()).step_by(4) {
+                let r = pixels[i] as f64 * 0.393
+                    + pixels[i + 1] as f64 * 0.769
+                    + pixels[i + 2] as f64 * 0.189;
+                let g = pixels[i] as f64 * 0.349
+                    + pixels[i + 1] as f64 * 0.686
+                    + pixels[i + 2] as f64 * 0.168;
+                let b = pixels[i] as f64 * 0.272
+                    + pixels[i + 1] as f64 * 0.534
+                    + pixels[i + 2] as f64 * 0.131;
+
+                let r = if r > 255.0 { 255 as u8 } else { r as u8 };
+                let g = if g > 255.0 { 255 as u8 } else { g as u8 };
+                let b = if b > 255.0 { 255 as u8 } else { b as u8 };
+
+                result.push(r);
+                result.push(g);
+                result.push(b);
+                result.push(pixels[i + 3]);
+            }
+        }
+
+        result
     }
 }
 
@@ -150,6 +227,9 @@ fn main() {
         convert_to_invert_array,
         convert_to_grayscale_array,
         convert_to_sepia_array,
+        convert_to_invert_im,
+        convert_to_grayscale_im,
+        convert_to_sepia_im,
     ])
     .setup(|app| {
         let image_path_state = ImagePathState::new();
@@ -276,4 +356,19 @@ fn convert_to_sepia_array(pixels: Vec<u8>) -> Vec<u8> {
     }
 
     result
+}
+
+#[tauri::command]
+fn convert_to_invert_im(image_path_state: State<'_, ImagePathState>) -> Vec<u8> {
+    image_path_state.make_invert_array()
+}
+
+#[tauri::command]
+fn convert_to_grayscale_im(image_path_state: State<'_, ImagePathState>) -> Vec<u8> {
+    image_path_state.make_grayscale_array()
+}
+
+#[tauri::command]
+fn convert_to_sepia_im(image_path_state: State<'_, ImagePathState>) -> Vec<u8> {
+    image_path_state.make_sepia_array()
 }

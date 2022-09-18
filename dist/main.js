@@ -8,6 +8,12 @@ img.crossOrigin = "anonymous";
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
 
+const offCanvas = document.createElement('canvas');
+const offCtx = offCanvas.getContext('2d');
+
+offCanvas.width = canvas.width;
+offCanvas.height = canvas.height;
+
 let originalSrc = "";
 let setsOriginalPixels = false;
 
@@ -71,7 +77,8 @@ const sepia = function() {
             for (let i = 0; i < response.length; ++i) {
                 data[i] = response[i];
             }
-            ctx.putImageData(imageData, 0, 0);
+            offCtx.putImageData(imageData, 0, 0);
+            ctx.drawImage(offCanvas, 0, 0);
         }
     });
     console.log(performance.now() - st);
@@ -111,7 +118,8 @@ const invert = function() {
             for (let i = 0; i < response.length; ++i) {
                 data[i] = response[i];
             }
-            ctx.putImageData(imageData, 0, 0);
+            offCtx.putImageData(imageData, 0, 0);
+            ctx.drawImage(offCanvas, 0, 0);
         }
     });
     console.log(performance.now() - st);
@@ -151,7 +159,8 @@ const grayscale = function() {
             for (let i = 0; i < response.length; ++i) {
                 data[i] = response[i];
             }
-            ctx.putImageData(imageData, 0, 0);
+            offCtx.putImageData(imageData, 0, 0);
+            ctx.drawImage(offCanvas, 0, 0);
         }
     });
     console.log(performance.now() - st);

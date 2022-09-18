@@ -12,6 +12,7 @@ use tauri::{Manager, State};
 struct ImagePath {
     original: String,
     work: String,
+    original_pixels: Vec<u8>,
 }
 
 struct ImagePathState {
@@ -22,7 +23,8 @@ impl ImagePathState {
     pub fn new() -> Self {
         ImagePathState {
             state: Mutex::new(ImagePath{ original: String::from(""),
-                                         work: String::from("") })
+                                         work: String::from(""),
+                                         original_pixels: Vec::new() })
         }
     }
 
@@ -30,6 +32,15 @@ impl ImagePathState {
         let mut image_path = self.state.lock().unwrap();
 
         image_path.original = s.to_string();
+    }
+
+    pub fn set_original_pixels(&self, pixels: &Vec<u8>) {
+        let mut image_path = self.state.lock().unwrap();
+
+        image_path.original_pixels.reserve(pixels.len());
+        for pixel in pixels {
+            image_path.original_pixels.push(*pixel);
+        }
     }
 
     pub fn get_original(&self) -> String {
@@ -132,6 +143,7 @@ fn main() {
     .invoke_handler(tauri::generate_handler![
         set_original_path,
         get_original_path,
+        set_original_pixels,
         convert_to_invert,
         convert_to_grayscale,
         convert_to_sepia,
@@ -157,6 +169,11 @@ fn set_original_path(image_path_state: State<'_, ImagePathState>, path: &str) {
 #[tauri::command]
 fn get_original_path(image_path_state: State<'_, ImagePathState>) -> String {
     image_path_state.get_original()
+}
+
+#[tauri::command]
+fn set_original_pixels(image_path_state: State<'_, ImagePathState>, pixels: Vec<u8>) {
+    image_path_state.set_original_pixels(&pixels);
 }
 
 #[tauri::command]

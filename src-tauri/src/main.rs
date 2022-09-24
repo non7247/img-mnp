@@ -152,7 +152,7 @@ impl ImagePathState {
     }
 }
 
-fn make_invert_image(original_path: &str, work_path: &str) -> std::io::Result<()> { 
+fn to_invert_image(original_path: &str, work_path: &str) -> std::io::Result<()> { 
     if Path::new(work_path).exists() {
         fs::remove_file(work_path)?;
     }
@@ -172,7 +172,7 @@ fn make_invert_image(original_path: &str, work_path: &str) -> std::io::Result<()
     Ok(())
 }
 
-fn make_grayscale_image(original_path: &str, work_path: &str) -> std::io::Result<()> {
+fn to_grayscale_image(original_path: &str, work_path: &str) -> std::io::Result<()> {
     if Path::new(work_path).exists() {
         fs::remove_file(work_path)?;
     }
@@ -190,7 +190,7 @@ fn make_grayscale_image(original_path: &str, work_path: &str) -> std::io::Result
 
     Ok(())
 }
-fn make_sepia_image(original_path: &str, work_path: &str) -> std::io::Result<()> {
+fn to_sepia_image(original_path: &str, work_path: &str) -> std::io::Result<()> {
     if Path::new(work_path).exists() {
         fs::remove_file(work_path)?;
     }
@@ -261,7 +261,7 @@ fn convert_to_invert(image_path_state: State<'_, ImagePathState>) -> String {
     let original_path = image_path_state.get_original();
     let work_path = image_path_state.make_work_path();
 
-    if let Err(err) = make_invert_image(&original_path, &work_path) {
+    if let Err(err) = to_invert_image(&original_path, &work_path) {
         println!("{}", err);
         return String::from("");
     }
@@ -274,7 +274,7 @@ fn convert_to_grayscale(image_path_state: State<'_, ImagePathState>) -> String {
     let original_path = image_path_state.get_original();
     let work_path = image_path_state.make_work_path();
 
-    if let Err(err) = make_grayscale_image(&original_path, &work_path) {
+    if let Err(err) = to_grayscale_image(&original_path, &work_path) {
         println!("{}", err);
         return String::from("");
     }
@@ -287,7 +287,7 @@ fn convert_to_sepia(image_path_state: State<'_, ImagePathState>) -> String {
     let original_path = image_path_state.get_original();
     let work_path = image_path_state.make_work_path();
 
-    if let Err(err) = make_sepia_image(&original_path, &work_path) {
+    if let Err(err) = to_sepia_image(&original_path, &work_path) {
         println!("{}", err);
         return String::from("");
     }
@@ -298,7 +298,7 @@ fn convert_to_sepia(image_path_state: State<'_, ImagePathState>) -> String {
 #[tauri::command]
 fn convert_to_invert_array(pixels: Vec<u8>) -> Vec<u8> {
     let mut result = Vec::new();
-    result.reserve(pixels.len() - 1);
+    result.reserve(pixels.len());
 
     for i in (0..pixels.len()).step_by(4) {
         result.push(255 - pixels[i]);

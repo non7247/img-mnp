@@ -246,6 +246,21 @@ fn to_sepia_array(pixels: &Vec<u8>) -> Vec<u8> {
     result
 }
 
+fn to_mosaic_array(pixels: &Vec<u8>, width: u32, height: u32, area: u32) -> Vec<u8> {
+    let mut result = Vec::new();
+    result.reserve(pixels.len());
+
+    if pixels.len() != width as usize * height as usize {
+        return result;
+    }
+
+    for y in (0..height).step_by(area as usize) {
+
+    }
+
+    result
+}
+
 fn main() {
   tauri::Builder::default()
     .invoke_handler(tauri::generate_handler![

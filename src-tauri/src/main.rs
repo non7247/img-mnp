@@ -12,7 +12,10 @@ use tauri::{Manager, State};
 struct ImagePath {
     original: String,
     work: String,
+
     original_pixels: Vec<u8>,
+    width: u32,
+    height: u32,
 }
 
 struct ImagePathState {
@@ -24,7 +27,9 @@ impl ImagePathState {
         ImagePathState {
             state: Mutex::new(ImagePath{ original: String::from(""),
                                          work: String::from(""),
-                                         original_pixels: Vec::new() })
+                                         original_pixels: Vec::new(),
+                                         width: 0,
+                                         height: 0 })
         }
     }
 
@@ -34,7 +39,7 @@ impl ImagePathState {
         image_path.original = s.to_string();
     }
 
-    pub fn set_original_pixels(&self, pixels: &Vec<u8>) {
+    pub fn set_original_pixels(&self, pixels: &Vec<u8>, width: u32, height: u32) {
         let mut image_path = self.state.lock().unwrap();
 
         image_path.original_pixels.clear();
@@ -42,6 +47,10 @@ impl ImagePathState {
         for pixel in pixels {
             image_path.original_pixels.push(*pixel);
         }
+
+        image_path.width = width;
+        image_path.height = height;
+
         println!("original_pixels.len: {}", image_path.original_pixels.len());
     }
 
@@ -274,8 +283,9 @@ fn get_original_path(image_path_state: State<'_, ImagePathState>) -> String {
 }
 
 #[tauri::command]
-fn set_original_pixels(image_path_state: State<'_, ImagePathState>, pixels: Vec<u8>) {
-    image_path_state.set_original_pixels(&pixels);
+fn set_original_pixels(image_path_state: State<'_, ImagePathState>, 
+                       pixels: Vec<u8>, width: u32, height: u32) {
+    image_path_state.set_original_pixels(&pixels, width, height);
 }
 
 #[tauri::command]

@@ -25,7 +25,8 @@ img.onload = function() {
     if (setsOriginalPixels) {
         const imageData = ctx.getImageData(0, 0, 500, 392);
         const ary = Array.from(imageData.data);
-        invoke('set_original_pixels', { pixels: ary });
+        invoke('set_original_pixels', { pixels: ary, width: imageData.width, 
+                                        height: imageData.height });
         setsOriginalPixels = false;
     }
 }

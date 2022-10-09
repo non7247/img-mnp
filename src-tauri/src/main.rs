@@ -14,8 +14,8 @@ struct ImagePath {
     work: String,
 
     original_pixels: Vec<u8>,
-    width: u32,
     height: u32,
+    width: u32,
 }
 
 struct ImagePathState {
@@ -28,8 +28,8 @@ impl ImagePathState {
             state: Mutex::new(ImagePath{ original: String::from(""),
                                          work: String::from(""),
                                          original_pixels: Vec::new(),
-                                         width: 0,
-                                         height: 0 })
+                                         height: 0,
+                                         width: 0 })
         }
     }
 
@@ -246,15 +246,65 @@ fn to_sepia_array(pixels: &Vec<u8>) -> Vec<u8> {
     result
 }
 
-fn to_mosaic_array(pixels: &Vec<u8>, width: u32, height: u32, area: u32) -> Vec<u8> {
+fn to_mosaic_array(pixels: &Vec<u8>, height: u32, width: u32, area: u32) -> Vec<u8> {
     let mut result = Vec::new();
     result.reserve(pixels.len());
 
-    if pixels.len() != width as usize * height as usize {
+    if pixels.len() != height as usize * width as usize * 4 {
         return result;
     }
 
     for y in (0..height).step_by(area as usize) {
+        for x in (0..width).step_by(area as usize) {
+            let mut acc_r: u32 = 0;
+            let mut acc_g: u32 = 0;
+            let mut acc_b: u32 = 0;
+
+            for ya in 0..area {
+                let row_s = (y + ya) * width * 4;
+
+                for xa in 0..area {
+                    let cp = (row_s + (x + xa) * 4) as usize;
+                    acc_r += pixels[cp] as u32;
+                    acc_g += pixels[cp + 1] as u32;
+                    acc_b += pixels[cp + 2] as u32;
+                }
+            }
+
+            let mut r = acc_r / (area * area);
+            let mut g = acc_g / (area * area);
+            let mut b = acc_b / (area * area);
+
+            if r > 255 { r = 255; }
+            if g > 255 { g = 255; }
+            if b > 255 { b = 255; }
+
+            for ya in 0..area {
+                let row_s = (y + ya) * width * 4;
+
+                for xa in 0..area {
+                    let cp = (row_s + (x + xa) * 4) as usize;
+                    result.push(r as u8);
+                    result.push(g as u8);
+                    result.push(b as u8);
+                    result.push(pixels[cp + 3]);
+                }
+            }
+        }
+
+        if width % area != 0 {
+            let rm = width % area;
+            for x in (width - rm - 1)..width {
+                for ya in 0..area {
+                    let row_s = (y + ya) * width * 4;
+
+
+                }
+            }
+        }
+    }
+
+    if height % area != 0 {
 
     }
 
@@ -299,8 +349,8 @@ fn get_original_path(image_path_state: State<'_, ImagePathState>) -> String {
 
 #[tauri::command]
 fn set_original_pixels(image_path_state: State<'_, ImagePathState>, 
-                       pixels: Vec<u8>, width: u32, height: u32) {
-    image_path_state.set_original_pixels(&pixels, width, height);
+                       pixels: Vec<u8>, height: u32, width: u32) {
+    image_path_state.set_original_pixels(&pixels, height, width);
 }
 
 #[tauri::command]

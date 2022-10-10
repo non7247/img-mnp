@@ -167,6 +167,26 @@ const grayscale = function() {
     console.log(performance.now() - st);
 }
 
+const mosaic = function() {
+    console.log("mosaic");
+    const st = performance.now();
+
+    const imageData = ctx.getImageData(0, 0, 500, 392);
+    const data = imageData.data;
+    invoke('convert_to_mosaic', { area: 1 }).then(response => {
+        console.log("response.length = " + response.length);
+        if (data.length == response.length) {
+            for (let i = 0; i < response.length; ++i) {
+                data[i] = response[i];
+            }
+            offCtx.putImageData(imageData, 0, 0);
+            ctx.drawImage(offCanvas, 0, 0);
+        }
+    });
+
+    console.log(performance.now() - st);
+}
+
 const inputs = document.querySelectorAll('[name=color]');
 for (const input of inputs) {
     input.addEventListener("change", function(evt) {
@@ -177,6 +197,8 @@ for (const input of inputs) {
             return grayscale();
         case 'sepia':
             return sepia();
+        case 'mosaic':
+            return mosaic();
         default:
             return original();
         }

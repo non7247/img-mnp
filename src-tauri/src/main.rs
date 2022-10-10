@@ -39,7 +39,7 @@ impl ImagePathState {
         image_path.original = s.to_string();
     }
 
-    pub fn set_original_pixels(&self, pixels: &Vec<u8>, width: u32, height: u32) {
+    pub fn set_original_pixels(&self, pixels: &Vec<u8>, height: u32, width: u32) {
         let mut image_path = self.state.lock().unwrap();
 
         image_path.original_pixels.clear();
@@ -52,6 +52,7 @@ impl ImagePathState {
         image_path.height = height;
 
         println!("original_pixels.len: {}", image_path.original_pixels.len());
+        println!("heght: {}, width: {}", image_path.height, image_path.width);
     }
 
     pub fn get_original(&self) -> String {
@@ -116,6 +117,18 @@ impl ImagePathState {
         if image_path.original_pixels.len() > 0 {
             let pixels = &image_path.original_pixels;
             result = to_sepia_array(pixels);
+        }
+
+        result
+    }
+
+    pub fn make_mosaic_array(&self, area: u32) -> Vec<u8> {
+        let mut result: Vec<u8> = Vec::new();
+
+        let image_path = self.state.lock().unwrap();
+        if image_path.original_pixels.len() > 0 {
+            let pixels = &image_path.original_pixels;
+            result = to_mosaic_array(pixels, image_path.height, image_path.width, area);
         }
 
         result
@@ -255,7 +268,11 @@ fn to_mosaic_array(pixels: &Vec<u8>, height: u32, width: u32, area: u32) -> Vec<
     }
 
     for y in (0..height).step_by(area as usize) {
+        if y + area > height { break; }
+
         for x in (0..width).step_by(area as usize) {
+            if x + area > width { break; }
+
             let mut acc_r: u32 = 0;
             let mut acc_g: u32 = 0;
             let mut acc_b: u32 = 0;
@@ -265,6 +282,7 @@ fn to_mosaic_array(pixels: &Vec<u8>, height: u32, width: u32, area: u32) -> Vec<
 
                 for xa in 0..area {
                     let cp = (row_s + (x + xa) * 4) as usize;
+
                     acc_r += pixels[cp] as u32;
                     acc_g += pixels[cp + 1] as u32;
                     acc_b += pixels[cp + 2] as u32;
@@ -284,6 +302,7 @@ fn to_mosaic_array(pixels: &Vec<u8>, height: u32, width: u32, area: u32) -> Vec<
 
                 for xa in 0..area {
                     let cp = (row_s + (x + xa) * 4) as usize;
+
                     result.push(r as u8);
                     result.push(g as u8);
                     result.push(b as u8);
@@ -294,18 +313,35 @@ fn to_mosaic_array(pixels: &Vec<u8>, height: u32, width: u32, area: u32) -> Vec<
 
         if width % area != 0 {
             let rm = width % area;
-            for x in (width - rm - 1)..width {
+
+            for x in (width - rm)..width {
                 for ya in 0..area {
                     let row_s = (y + ya) * width * 4;
+                    let cp = (row_s + x * 4) as usize;
 
-
+                    result.push(pixels[cp]);
+                    result.push(pixels[cp + 1]);
+                    result.push(pixels[cp + 2]);
+                    result.push(pixels[cp + 3]);
                 }
             }
         }
     }
 
     if height % area != 0 {
+        let rm = height % area;
+        for y in (height - rm)..height {
+            let row_s = y * width * 4;
 
+            for x in 0..width {
+                let cp = (row_s + x * 4) as usize;
+
+                result.push(pixels[cp]);
+                result.push(pixels[cp + 1]);
+                result.push(pixels[cp + 2]);
+                result.push(pixels[cp + 3]);
+            }
+        }
     }
 
     result
@@ -326,6 +362,7 @@ fn main() {
         convert_to_invert_im,
         convert_to_grayscale_im,
         convert_to_sepia_im,
+        convert_to_mosaic,
     ])
     .setup(|app| {
         let image_path_state = ImagePathState::new();
@@ -420,4 +457,9 @@ fn convert_to_grayscale_im(image_path_state: State<'_, ImagePathState>) -> Vec<u
 #[tauri::command]
 fn convert_to_sepia_im(image_path_state: State<'_, ImagePathState>) -> Vec<u8> {
     image_path_state.make_sepia_array()
+}
+
+#[tauri::command]
+fn convert_to_mosaic(image_path_state: State<'_, ImagePathState>, area: u32) -> Vec<u8> {
+    image_path_state.make_mosaic_array(area)
 }

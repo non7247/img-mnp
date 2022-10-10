@@ -260,8 +260,7 @@ fn to_sepia_array(pixels: &Vec<u8>) -> Vec<u8> {
 }
 
 fn to_mosaic_array(pixels: &Vec<u8>, height: u32, width: u32, area: u32) -> Vec<u8> {
-    let mut result = Vec::new();
-    result.reserve(pixels.len());
+    let mut result = pixels.to_vec();
 
     if pixels.len() != height as usize * width as usize * 4 {
         return result;
@@ -303,10 +302,9 @@ fn to_mosaic_array(pixels: &Vec<u8>, height: u32, width: u32, area: u32) -> Vec<
                 for xa in 0..area {
                     let cp = (row_s + (x + xa) * 4) as usize;
 
-                    result.push(r as u8);
-                    result.push(g as u8);
-                    result.push(b as u8);
-                    result.push(pixels[cp + 3]);
+                    result[cp] = r as u8;
+                    result[cp + 1] = g as u8;
+                    result[cp + 2] = b as u8;
                 }
             }
         }
@@ -319,10 +317,9 @@ fn to_mosaic_array(pixels: &Vec<u8>, height: u32, width: u32, area: u32) -> Vec<
                     let row_s = (y + ya) * width * 4;
                     let cp = (row_s + x * 4) as usize;
 
-                    result.push(pixels[cp]);
-                    result.push(pixels[cp + 1]);
-                    result.push(pixels[cp + 2]);
-                    result.push(pixels[cp + 3]);
+                    result[cp] =  pixels[cp];
+                    result[cp + 1] = pixels[cp + 1];
+                    result[cp + 2] = pixels[cp + 2];
                 }
             }
         }
@@ -336,10 +333,9 @@ fn to_mosaic_array(pixels: &Vec<u8>, height: u32, width: u32, area: u32) -> Vec<
             for x in 0..width {
                 let cp = (row_s + x * 4) as usize;
 
-                result.push(pixels[cp]);
-                result.push(pixels[cp + 1]);
-                result.push(pixels[cp + 2]);
-                result.push(pixels[cp + 3]);
+                result[cp] = pixels[cp];
+                result[cp + 1] = pixels[cp + 1];
+                result[cp + 2] = pixels[cp + 2];
             }
         }
     }

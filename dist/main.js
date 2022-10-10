@@ -173,7 +173,7 @@ const mosaic = function() {
 
     const imageData = ctx.getImageData(0, 0, 500, 392);
     const data = imageData.data;
-    invoke('convert_to_mosaic', { area: 1 }).then(response => {
+    invoke('convert_to_mosaic', { area: 9 }).then(response => {
         console.log("response.length = " + response.length);
         if (data.length == response.length) {
             for (let i = 0; i < response.length; ++i) {

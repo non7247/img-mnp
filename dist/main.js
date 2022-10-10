@@ -171,10 +171,11 @@ const mosaic = function() {
     console.log("mosaic");
     const st = performance.now();
 
+    const area = parseInt(document.getElementById("area").value);
+
     const imageData = ctx.getImageData(0, 0, 500, 392);
     const data = imageData.data;
-    invoke('convert_to_mosaic', { area: 9 }).then(response => {
-        console.log("response.length = " + response.length);
+    invoke('convert_to_mosaic', { area: area }).then(response => {
         if (data.length == response.length) {
             for (let i = 0; i < response.length; ++i) {
                 data[i] = response[i];

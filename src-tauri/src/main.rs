@@ -351,15 +351,81 @@ fn to_mosaic_array(pixels: &Vec<u8>, height: u32, width: u32, area: u32) -> Vec<
     if height % area != 0 {
         let rm = height % area;
 
-        for y in (height - rm)..height {
-            let row_s = y * width * 4;
+        for x in (0..width).step_by(area as usize) {
+            if x + area > width { break; }
 
-            for x in 0..width {
-                let cp = (row_s + x * 4) as usize;
+            let mut acc_r: u32 = 0;
+            let mut acc_g: u32 = 0;
+            let mut acc_b: u32 = 0;
 
-                result[cp] = pixels[cp];
-                result[cp + 1] = pixels[cp + 1];
-                result[cp + 2] = pixels[cp + 2];
+            for y in (height - rm)..height {
+                let row_s = y * width * 4;
+
+                for xa in 0..area {
+                    let cp = (row_s + (x + xa) * 4) as usize;
+
+                    acc_r += pixels[cp] as u32;
+                    acc_g += pixels[cp + 1] as u32;
+                    acc_b += pixels[cp + 2] as u32;
+                }
+            }
+
+            let mut r = acc_r / (rm * area);
+            let mut g = acc_g / (rm * area);
+            let mut b = acc_b / (rm * area);
+
+            if r > 255 { r = 255; }
+            if g > 255 { g = 255; }
+            if b > 255 { b = 255; }
+
+            for y in (height - rm)..height {
+                let row_s = y * width * 4;
+
+                for xa in 0..area {
+                    let cp = (row_s + (x + xa) * 4) as usize;
+
+                    result[cp] = r as u8;
+                    result[cp + 1] = g as u8;
+                    result[cp + 2] = b as u8;
+                }
+            }
+        }
+
+        if width % area != 0 {
+            let rm_w = width % area;
+
+            let mut acc_r: u32 = 0;
+            let mut acc_g: u32 = 0;
+            let mut acc_b: u32 = 0;
+
+            for y in (height - rm)..height {
+                for x in (width - rm_w)..width {
+                    let row_s = y * width * 4;
+                    let cp = (row_s + x * 4) as usize;
+
+                    acc_r += pixels[cp] as u32;
+                    acc_g += pixels[cp + 1] as u32;
+                    acc_b += pixels[cp + 2] as u32;
+                }
+            }
+
+            let mut r = acc_r / (rm * rm_w);
+            let mut g = acc_g / (rm * rm_w);
+            let mut b = acc_b / (rm * rm_w);
+
+            if r > 255 { r = 255; }
+            if g > 255 { g = 255; }
+            if b > 255 { b = 255; }
+
+            for y in (height - rm)..height {
+                for x in (width - rm_w)..width {
+                    let row_s = y * width * 4;
+                    let cp = (row_s + x * 4) as usize;
+
+                    result[cp] = r as u8;
+                    result[cp + 1] = g as u8;
+                    result[cp + 2] = b as u8;
+                }
             }
         }
     }

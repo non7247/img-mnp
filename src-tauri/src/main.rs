@@ -259,6 +259,15 @@ fn to_sepia_array(pixels: &Vec<u8>) -> Vec<u8> {
     result
 }
 
+fn calc_pixel_average(acc: u32, count: u32) -> u8 {
+    let avg = acc / count;
+    if avg > 255 {
+        255
+    } else {
+        avg as u8
+    }
+}
+
 fn to_mosaic_array(pixels: &Vec<u8>, height: u32, width: u32, area: u32) -> Vec<u8> {
     let mut result = pixels.to_vec();
 
@@ -288,13 +297,9 @@ fn to_mosaic_array(pixels: &Vec<u8>, height: u32, width: u32, area: u32) -> Vec<
                 }
             }
 
-            let mut r = acc_r / (area * area);
-            let mut g = acc_g / (area * area);
-            let mut b = acc_b / (area * area);
-
-            if r > 255 { r = 255; }
-            if g > 255 { g = 255; }
-            if b > 255 { b = 255; }
+            let r = calc_pixel_average(acc_r, area * area);
+            let g = calc_pixel_average(acc_g, area * area);
+            let b = calc_pixel_average(acc_b, area * area);
 
             for ya in 0..area {
                 let row_s = (y + ya) * width * 4;
@@ -327,13 +332,9 @@ fn to_mosaic_array(pixels: &Vec<u8>, height: u32, width: u32, area: u32) -> Vec<
                 }
             }
 
-            let mut r = acc_r / (area * rm);
-            let mut g = acc_g / (area * rm);
-            let mut b = acc_b / (area * rm);
-
-            if r > 255 { r = 255; }
-            if g > 255 { g = 255; }
-            if b > 255 { b = 255; }
+            let r = calc_pixel_average(acc_r, area * rm);
+            let g = calc_pixel_average(acc_g, area * rm);
+            let b = calc_pixel_average(acc_b, area * rm);
 
             for x in (width - rm)..width {
                 for ya in 0..area {
@@ -370,13 +371,9 @@ fn to_mosaic_array(pixels: &Vec<u8>, height: u32, width: u32, area: u32) -> Vec<
                 }
             }
 
-            let mut r = acc_r / (rm * area);
-            let mut g = acc_g / (rm * area);
-            let mut b = acc_b / (rm * area);
-
-            if r > 255 { r = 255; }
-            if g > 255 { g = 255; }
-            if b > 255 { b = 255; }
+            let r = calc_pixel_average(acc_r, rm * area);
+            let g = calc_pixel_average(acc_g, rm * area);
+            let b = calc_pixel_average(acc_b, rm * area);
 
             for y in (height - rm)..height {
                 let row_s = y * width * 4;
@@ -409,13 +406,9 @@ fn to_mosaic_array(pixels: &Vec<u8>, height: u32, width: u32, area: u32) -> Vec<
                 }
             }
 
-            let mut r = acc_r / (rm * rm_w);
-            let mut g = acc_g / (rm * rm_w);
-            let mut b = acc_b / (rm * rm_w);
-
-            if r > 255 { r = 255; }
-            if g > 255 { g = 255; }
-            if b > 255 { b = 255; }
+            let r = calc_pixel_average(acc_r, rm * rm_w);
+            let g = calc_pixel_average(acc_g, rm * rm_w);
+            let b = calc_pixel_average(acc_b, rm * rm_w);
 
             for y in (height - rm)..height {
                 for x in (width - rm_w)..width {

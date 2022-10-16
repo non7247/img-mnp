@@ -322,8 +322,9 @@ fn to_mosaic_array(pixels: &Vec<u8>, height: u32, width: u32, area: u32) -> Vec<
             let mut acc_b: u32 = 0;
 
             for ya in 0..area {
+                let row_s = (y + ya) * width * 4;
+
                 for x in (width - rm)..width {
-                    let row_s = (y + ya) * width * 4;
                     let cp = (row_s + x * 4) as usize;
 
                     acc_r += pixels[cp] as u32;
@@ -337,8 +338,9 @@ fn to_mosaic_array(pixels: &Vec<u8>, height: u32, width: u32, area: u32) -> Vec<
             let b = calc_pixel_average(acc_b, area * rm);
 
             for ya in 0..area {
+                let row_s = (y + ya) * width * 4;
+
                 for x in (width - rm)..width {
-                    let row_s = (y + ya) * width * 4;
                     let cp = (row_s + x * 4) as usize;
 
                     result[cp] = r as u8;
@@ -396,8 +398,9 @@ fn to_mosaic_array(pixels: &Vec<u8>, height: u32, width: u32, area: u32) -> Vec<
             let mut acc_b: u32 = 0;
 
             for y in (height - rm)..height {
+                let row_s = y * width * 4;
+
                 for x in (width - rm_w)..width {
-                    let row_s = y * width * 4;
                     let cp = (row_s + x * 4) as usize;
 
                     acc_r += pixels[cp] as u32;
@@ -411,8 +414,9 @@ fn to_mosaic_array(pixels: &Vec<u8>, height: u32, width: u32, area: u32) -> Vec<
             let b = calc_pixel_average(acc_b, rm * rm_w);
 
             for y in (height - rm)..height {
+                let row_s = y * width * 4;
+
                 for x in (width - rm_w)..width {
-                    let row_s = y * width * 4;
                     let cp = (row_s + x * 4) as usize;
 
                     result[cp] = r as u8;

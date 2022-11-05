@@ -285,33 +285,13 @@ fn to_mosaic_array(pixels: &Vec<u8>, height: u32, width: u32, area: u32) -> Vec<
             let mut acc_g: u32 = 0;
             let mut acc_b: u32 = 0;
 
-            for ya in 0..area {
-                let row_s = (y + ya) * width * 4;
-
-                for xa in 0..area {
-                    let cp = (row_s + (x + xa) * 4) as usize;
-
-                    acc_r += pixels[cp] as u32;
-                    acc_g += pixels[cp + 1] as u32;
-                    acc_b += pixels[cp + 2] as u32;
-                }
-            }
+            calc_total_in_area(pixels, y, x, width, area, area, &mut acc_r, &mut acc_g, &mut acc_b);
 
             let r = calc_pixel_average(acc_r, area * area);
             let g = calc_pixel_average(acc_g, area * area);
             let b = calc_pixel_average(acc_b, area * area);
 
-            for ya in 0..area {
-                let row_s = (y + ya) * width * 4;
-
-                for xa in 0..area {
-                    let cp = (row_s + (x + xa) * 4) as usize;
-
-                    result[cp] = r as u8;
-                    result[cp + 1] = g as u8;
-                    result[cp + 2] = b as u8;
-                }
-            }
+            set_pixel_in_area(&mut result, y, x, width, area, area, r as u8, g as u8, b as u8);
         }
 
         if width % area != 0 {
@@ -321,35 +301,15 @@ fn to_mosaic_array(pixels: &Vec<u8>, height: u32, width: u32, area: u32) -> Vec<
             let mut acc_g: u32 = 0;
             let mut acc_b: u32 = 0;
 
-            for ya in 0..area {
-                let row_s = (y + ya) * width * 4;
-
-                let x = width - rm;
-                for xa in 0..rm {
-                    let cp = (row_s + (x + xa) * 4) as usize;
-
-                    acc_r += pixels[cp] as u32;
-                    acc_g += pixels[cp + 1] as u32;
-                    acc_b += pixels[cp + 2] as u32;
-                }
-            }
+            calc_total_in_area(pixels, y, width - rm, width, area, rm, &mut acc_r, &mut acc_g,
+                               &mut acc_b);
 
             let r = calc_pixel_average(acc_r, area * rm);
             let g = calc_pixel_average(acc_g, area * rm);
             let b = calc_pixel_average(acc_b, area * rm);
 
-            for ya in 0..area {
-                let row_s = (y + ya) * width * 4;
-
-                let x = width - rm;
-                for xa in 0..rm {
-                    let cp = (row_s + (x + xa) * 4) as usize;
-
-                    result[cp] = r as u8;
-                    result[cp + 1] = g as u8;
-                    result[cp + 2] = b as u8;
-                }
-            }
+            set_pixel_in_area(&mut result, y, width - rm, width, area, rm, r as u8, g as u8,
+                              b as u8);
         }
     }
 
@@ -363,35 +323,15 @@ fn to_mosaic_array(pixels: &Vec<u8>, height: u32, width: u32, area: u32) -> Vec<
             let mut acc_g: u32 = 0;
             let mut acc_b: u32 = 0;
 
-            let y = height - rm;
-            for ya in 0..rm {
-                let row_s = (y + ya) * width * 4;
-
-                for xa in 0..area {
-                    let cp = (row_s + (x + xa) * 4) as usize;
-
-                    acc_r += pixels[cp] as u32;
-                    acc_g += pixels[cp + 1] as u32;
-                    acc_b += pixels[cp + 2] as u32;
-                }
-            }
+            calc_total_in_area(pixels, height - rm, x, width, rm, area, &mut acc_r, &mut acc_g,
+                               &mut acc_b);
 
             let r = calc_pixel_average(acc_r, rm * area);
             let g = calc_pixel_average(acc_g, rm * area);
             let b = calc_pixel_average(acc_b, rm * area);
 
-            let y = height - rm;
-            for ya in 0..rm {
-                let row_s = (y + ya) * width * 4;
-
-                for xa in 0..area {
-                    let cp = (row_s + (x + xa) * 4) as usize;
-
-                    result[cp] = r as u8;
-                    result[cp + 1] = g as u8;
-                    result[cp + 2] = b as u8;
-                }
-            }
+            set_pixel_in_area(&mut result, height - rm, x, width, rm, area, r as u8, g as u8,
+                              b as u8);
         }
 
         if width % area != 0 {
@@ -401,41 +341,49 @@ fn to_mosaic_array(pixels: &Vec<u8>, height: u32, width: u32, area: u32) -> Vec<
             let mut acc_g: u32 = 0;
             let mut acc_b: u32 = 0;
 
-            let y = height - rm;
-            for ya in 0..rm {
-                let row_s = (y + ya) * width * 4;
-
-                let x = width- rm_w;
-                for xa in 0..rm_w {
-                    let cp = (row_s + (x + xa) * 4) as usize;
-
-                    acc_r += pixels[cp] as u32;
-                    acc_g += pixels[cp + 1] as u32;
-                    acc_b += pixels[cp + 2] as u32;
-                }
-            }
+            calc_total_in_area(pixels, height - rm, width - rm_w, width, rm, rm_w, &mut acc_r,
+                               &mut acc_g, &mut acc_b);
 
             let r = calc_pixel_average(acc_r, rm * rm_w);
             let g = calc_pixel_average(acc_g, rm * rm_w);
             let b = calc_pixel_average(acc_b, rm * rm_w);
 
-            let y = height - rm;
-            for ya in 0..rm {
-                let row_s = (y + ya) * width * 4;
-
-                let x = width - rm_w;
-                for xa in 0..rm_w {
-                    let cp = (row_s + (x + xa) * 4) as usize;
-
-                    result[cp] = r as u8;
-                    result[cp + 1] = g as u8;
-                    result[cp + 2] = b as u8;
-                }
-            }
+            set_pixel_in_area(&mut result, height - rm, width - rm_w, width, rm, rm_w, r as u8,
+                              g as u8, b as u8);
         }
     }
 
     result
+}
+
+fn calc_total_in_area(pixels: &Vec<u8>, row: u32, col: u32, width: u32, area_h: u32,
+                      area_w: u32, acc_r: &mut u32, acc_g: &mut u32, acc_b: &mut u32) {
+    for ya in 0..area_h {
+        let row_s = (row + ya) * width * 4;
+
+        for xa in 0..area_w {
+            let cp = (row_s + (col + xa) * 4) as usize;
+
+            *acc_r += pixels[cp] as u32;
+            *acc_g += pixels[cp + 1] as u32;
+            *acc_b += pixels[cp + 2] as u32;
+        }
+    }
+}
+
+fn set_pixel_in_area(pixels: &mut Vec<u8>, row: u32, col: u32, width: u32, area_h: u32,
+                     area_w: u32, r: u8, g: u8, b: u8) {
+    for ya in 0..area_h {
+        let row_s = (row + ya) * width * 4;
+
+        for xa in 0..area_w {
+            let cp = (row_s + (col + xa) * 4) as usize;
+
+            pixels[cp] = r;
+            pixels[cp + 1] = g;
+            pixels[cp + 2] = b;
+        }
+    }
 }
 
 fn main() {

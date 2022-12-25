@@ -281,35 +281,13 @@ fn to_mosaic_array(pixels: &Vec<u8>, height: u32, width: u32, area: u32) -> Vec<
         for x in (0..width).step_by(area as usize) {
             if x + area > width { break; }
 
-            let mut acc_r: u32 = 0;
-            let mut acc_g: u32 = 0;
-            let mut acc_b: u32 = 0;
-
-            calc_total_in_area(pixels, y, x, width, area, area, &mut acc_r, &mut acc_g, &mut acc_b);
-
-            let r = calc_pixel_average(acc_r, area * area);
-            let g = calc_pixel_average(acc_g, area * area);
-            let b = calc_pixel_average(acc_b, area * area);
-
-            set_pixel_in_area(&mut result, y, x, width, area, area, r as u8, g as u8, b as u8);
+            to_mosaic_in_area(pixels, &mut result, y, x, width, area, area);
         }
 
         if width % area != 0 {
             let rm = width % area;
 
-            let mut acc_r: u32 = 0;
-            let mut acc_g: u32 = 0;
-            let mut acc_b: u32 = 0;
-
-            calc_total_in_area(pixels, y, width - rm, width, area, rm, &mut acc_r, &mut acc_g,
-                               &mut acc_b);
-
-            let r = calc_pixel_average(acc_r, area * rm);
-            let g = calc_pixel_average(acc_g, area * rm);
-            let b = calc_pixel_average(acc_b, area * rm);
-
-            set_pixel_in_area(&mut result, y, width - rm, width, area, rm, r as u8, g as u8,
-                              b as u8);
+            to_mosaic_in_area(pixels, &mut result, y, width - rm, width, area, rm);
         }
     }
 
@@ -319,41 +297,33 @@ fn to_mosaic_array(pixels: &Vec<u8>, height: u32, width: u32, area: u32) -> Vec<
         for x in (0..width).step_by(area as usize) {
             if x + area > width { break; }
 
-            let mut acc_r: u32 = 0;
-            let mut acc_g: u32 = 0;
-            let mut acc_b: u32 = 0;
-
-            calc_total_in_area(pixels, height - rm, x, width, rm, area, &mut acc_r, &mut acc_g,
-                               &mut acc_b);
-
-            let r = calc_pixel_average(acc_r, rm * area);
-            let g = calc_pixel_average(acc_g, rm * area);
-            let b = calc_pixel_average(acc_b, rm * area);
-
-            set_pixel_in_area(&mut result, height - rm, x, width, rm, area, r as u8, g as u8,
-                              b as u8);
+            to_mosaic_in_area(pixels, &mut result, height - rm, x, width, rm, area);
         }
 
         if width % area != 0 {
             let rm_w = width % area;
 
-            let mut acc_r: u32 = 0;
-            let mut acc_g: u32 = 0;
-            let mut acc_b: u32 = 0;
-
-            calc_total_in_area(pixels, height - rm, width - rm_w, width, rm, rm_w, &mut acc_r,
-                               &mut acc_g, &mut acc_b);
-
-            let r = calc_pixel_average(acc_r, rm * rm_w);
-            let g = calc_pixel_average(acc_g, rm * rm_w);
-            let b = calc_pixel_average(acc_b, rm * rm_w);
-
-            set_pixel_in_area(&mut result, height - rm, width - rm_w, width, rm, rm_w, r as u8,
-                              g as u8, b as u8);
+            to_mosaic_in_area(pixels, &mut result, height - rm, width - rm, width, rm, rm_w);
         }
     }
 
     result
+}
+
+fn to_mosaic_in_area(pixels: &Vec<u8>, result: &mut Vec<u8>, row: u32, col: u32, width: u32, 
+                     area_h: u32, area_w: u32) {
+    let mut acc_r: u32 = 0;
+    let mut acc_g: u32 = 0;
+    let mut acc_b: u32 = 0;
+
+    calc_total_in_area(pixels, row, col, width, area_h, area_w, &mut acc_r, &mut acc_g,
+                       &mut acc_b);
+
+    let r = calc_pixel_average(acc_r, area_h * area_w); 
+    let g = calc_pixel_average(acc_g, area_h * area_w); 
+    let b = calc_pixel_average(acc_b, area_h * area_w); 
+
+    set_pixel_in_area(result, row, col, width, area_h, area_w, r as u8, g as u8, b as u8);
 }
 
 fn calc_total_in_area(pixels: &Vec<u8>, row: u32, col: u32, width: u32, area_h: u32,

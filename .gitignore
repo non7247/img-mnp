@@ -2,3 +2,4 @@
 Cargo.lock
 *.un~
 *.swp
+node_modules/*

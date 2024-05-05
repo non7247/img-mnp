@@ -25,11 +25,15 @@ struct ImagePathState {
 impl ImagePathState {
     pub fn new() -> Self {
         ImagePathState {
-            state: Mutex::new(ImagePath{ original: String::from(""),
-                                         work: String::from(""),
-                                         original_pixels: Vec::new(),
-                                         height: 0,
-                                         width: 0 })
+            state: Mutex::new(
+                ImagePath{
+                     original: String::from(""),
+                    work: String::from(""),
+                    original_pixels: Vec::new(),
+                    height: 0,
+                    width: 0
+                }
+            )
         }
     }
 
@@ -219,8 +223,8 @@ fn to_grayscale_array(pixels: &Vec<u8>) -> Vec<u8> {
 
     for i in (0..pixels.len()).step_by(4) {
         let gray = pixels[i] as f64 * 0.3
-                 + pixels[i + 1] as f64 * 0.59
-                 + pixels[i + 2] as f64 * 0.11;
+            + pixels[i + 1] as f64 * 0.59
+            + pixels[i + 2] as f64 * 0.11;
         let gray = gray as u8;
         result.push(gray);
         result.push(gray);
@@ -237,14 +241,14 @@ fn to_sepia_array(pixels: &Vec<u8>) -> Vec<u8> {
 
     for i in (0..pixels.len()).step_by(4) {
         let r = pixels[i] as f64 * 0.393
-              + pixels[i + 1] as f64 * 0.769
-              + pixels[i + 2] as f64 * 0.189;
+            + pixels[i + 1] as f64 * 0.769
+            + pixels[i + 2] as f64 * 0.189;
         let g = pixels[i] as f64 * 0.349
-              + pixels[i + 1] as f64 * 0.686
-              + pixels[i + 2] as f64 * 0.168;
+            + pixels[i + 1] as f64 * 0.686
+            + pixels[i + 2] as f64 * 0.168;
         let b = pixels[i] as f64 * 0.272
-              + pixels[i + 1] as f64 * 0.534
-              + pixels[i + 2] as f64 * 0.131;
+            + pixels[i + 1] as f64 * 0.534
+            + pixels[i + 2] as f64 * 0.131;
 
         let r = if r > 255.0 { 255 as u8 } else { r as u8 };
         let g = if g > 255.0 { 255 as u8 } else { g as u8 };
@@ -310,14 +314,30 @@ fn to_mosaic_array(pixels: &Vec<u8>, height: u32, width: u32, area: u32) -> Vec<
     result
 }
 
-fn to_mosaic_in_area(pixels: &Vec<u8>, result: &mut Vec<u8>, row: u32, col: u32, width: u32, 
-                     area_h: u32, area_w: u32) {
+fn to_mosaic_in_area(
+    pixels: &Vec<u8>,
+    result: &mut Vec<u8>, 
+    row: u32,
+    col: u32, 
+    width: u32, 
+    area_h: u32, 
+    area_w: u32
+) {
     let mut acc_r: u32 = 0;
     let mut acc_g: u32 = 0;
     let mut acc_b: u32 = 0;
 
-    calc_total_in_area(pixels, row, col, width, area_h, area_w, &mut acc_r, &mut acc_g,
-                       &mut acc_b);
+    calc_total_in_area(
+        pixels, 
+        row, 
+        col, 
+        width, 
+        area_h, 
+        area_w, 
+        &mut acc_r, 
+        &mut acc_g,
+        &mut acc_b
+    );
 
     let r = calc_pixel_average(acc_r, area_h * area_w); 
     let g = calc_pixel_average(acc_g, area_h * area_w); 
@@ -326,8 +346,17 @@ fn to_mosaic_in_area(pixels: &Vec<u8>, result: &mut Vec<u8>, row: u32, col: u32,
     set_pixel_in_area(result, row, col, width, area_h, area_w, r as u8, g as u8, b as u8);
 }
 
-fn calc_total_in_area(pixels: &Vec<u8>, row: u32, col: u32, width: u32, area_h: u32,
-                      area_w: u32, acc_r: &mut u32, acc_g: &mut u32, acc_b: &mut u32) {
+fn calc_total_in_area(
+    pixels: &Vec<u8>, 
+    row: u32, 
+    col: u32, 
+    width: u32, 
+    area_h: u32,
+    area_w: u32, 
+    acc_r: &mut u32, 
+    acc_g: &mut u32, 
+    acc_b: &mut u32
+) {
     for ya in 0..area_h {
         let row_s = (row + ya) * width * 4;
 
@@ -341,8 +370,17 @@ fn calc_total_in_area(pixels: &Vec<u8>, row: u32, col: u32, width: u32, area_h: 
     }
 }
 
-fn set_pixel_in_area(pixels: &mut Vec<u8>, row: u32, col: u32, width: u32, area_h: u32,
-                     area_w: u32, r: u8, g: u8, b: u8) {
+fn set_pixel_in_area(
+    pixels: &mut Vec<u8>, 
+    row: u32, 
+    col: u32, 
+    width: u32, 
+    area_h: u32,
+    area_w: u32, 
+    r: u8, 
+    g: u8, 
+    b: u8
+) {
     for ya in 0..area_h {
         let row_s = (row + ya) * width * 4;
 

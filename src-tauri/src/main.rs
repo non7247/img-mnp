@@ -385,6 +385,13 @@ fn set_pixel_in_area(pixels: &mut Vec<u8>, sub_area: &SubArea, r: u8, g: u8, b: 
     }
 }
 
+fn to_smoothing_array(pixels: &Vec<u8>, height: u32, width: u32, area: u32) -> Vec<u8> {
+    let mut result = pixels.to_vec();
+
+
+    result
+}
+
 fn main() {
   tauri::Builder::default()
     .invoke_handler(tauri::generate_handler![

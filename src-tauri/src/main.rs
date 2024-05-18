@@ -385,9 +385,35 @@ fn set_pixel_in_area(pixels: &mut Vec<u8>, sub_area: &SubArea, r: u8, g: u8, b: 
     }
 }
 
-fn to_smoothing_array(pixels: &Vec<u8>, height: u32, width: u32, area: u32) -> Vec<u8> {
+fn to_smoothing_array(pixels: &Vec<u8>, height: u32, width: u32) -> Vec<u8> {
     let mut result = pixels.to_vec();
 
+    if pixels.len() != height as usize * width as usize * 4 {
+        return result;
+    }
+
+    for y in 1..height - 1 {
+        let row_p = ((y - 1) * width * 4) as usize;
+        let row_c = (y * width * 4) as usize;
+        let row_n = ((y + 1) * width * 4) as usize;
+
+        for x in (4..(width as usize - 1) * 4).step_by(4) {
+            for i in 0..3 {
+                let mut acc = 0;
+                acc += pixels[row_p + x - 4 + i] as u32;
+                acc += pixels[row_p + x + i] as u32;
+                acc += pixels[row_p + x + 4 + i] as u32;
+                acc += pixels[row_c + x - 4 + i] as u32;
+                acc += pixels[row_c + x + i] as u32;
+                acc += pixels[row_c + x + 4 + i] as u32;
+                acc += pixels[row_n + x - 4 + i] as u32;
+                acc += pixels[row_n + x + i] as u32;
+                acc += pixels[row_n + x + 4 + i] as u32;
+
+                result[row_c + x + i] = calc_pixel_average(acc, 9);
+            }
+        }
+    }
 
     result
 }

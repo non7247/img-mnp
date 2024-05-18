@@ -152,6 +152,18 @@ impl ImagePathState {
 
         result
     }
+
+    pub fn make_smoothing_array(&self) -> Vec<u8> {
+        let mut result: Vec<u8> = Vec::new();
+
+        let image_path = self.state.lock().unwrap();
+        if image_path.original_pixels.len() > 0 {
+            let pixels: &Vec<u8> = &image_path.original_pixels;
+            result = to_smoothing_array(pixels, image_path.height, image_path.width);
+        }
+
+        result
+    }
 }
 
 fn to_invert_image(original_path: &str, work_path: &str) -> std::io::Result<()> { 
@@ -385,6 +397,39 @@ fn set_pixel_in_area(pixels: &mut Vec<u8>, sub_area: &SubArea, r: u8, g: u8, b: 
     }
 }
 
+fn to_smoothing_array(pixels: &Vec<u8>, height: u32, width: u32) -> Vec<u8> {
+    let mut result = pixels.to_vec();
+
+    if pixels.len() != height as usize * width as usize * 4 {
+        return result;
+    }
+
+    for y in 1..height - 1 {
+        let row_p = ((y - 1) * width * 4) as usize;
+        let row_c = (y * width * 4) as usize;
+        let row_n = ((y + 1) * width * 4) as usize;
+
+        for x in (4..(width as usize - 1) * 4).step_by(4) {
+            for i in 0..3 {
+                let mut acc = 0;
+                acc += pixels[row_p + x - 4 + i] as u32;
+                acc += pixels[row_p + x + i] as u32;
+                acc += pixels[row_p + x + 4 + i] as u32;
+                acc += pixels[row_c + x - 4 + i] as u32;
+                acc += pixels[row_c + x + i] as u32;
+                acc += pixels[row_c + x + 4 + i] as u32;
+                acc += pixels[row_n + x - 4 + i] as u32;
+                acc += pixels[row_n + x + i] as u32;
+                acc += pixels[row_n + x + 4 + i] as u32;
+
+                result[row_c + x + i] = calc_pixel_average(acc, 9);
+            }
+        }
+    }
+
+    result
+}
+
 fn main() {
   tauri::Builder::default()
     .invoke_handler(tauri::generate_handler![
@@ -401,6 +446,7 @@ fn main() {
         convert_to_grayscale_im,
         convert_to_sepia_im,
         convert_to_mosaic,
+        convert_to_smoothing,
     ])
     .setup(|app| {
         let image_path_state = ImagePathState::new();
@@ -500,4 +546,9 @@ fn convert_to_sepia_im(image_path_state: State<'_, ImagePathState>) -> Vec<u8> {
 #[tauri::command]
 fn convert_to_mosaic(image_path_state: State<'_, ImagePathState>, area: u32) -> Vec<u8> {
     image_path_state.make_mosaic_array(area)
+}
+
+#[tauri::command]
+fn convert_to_smoothing(image_path_state: State<'_, ImagePathState>) -> Vec<u8> {
+    image_path_state.make_smoothing_array()
 }

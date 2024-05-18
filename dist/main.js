@@ -188,6 +188,25 @@ const mosaic = function() {
     console.log(performance.now() - st);
 }
 
+const smoothing = function() {
+    console.log("smoothing");
+    const st = performance.now();
+
+    const imageData = ctx.getImageData(0, 0, 500, 392);
+    const data = imageData.data;
+    invoke('convert_to_smoothing').then(response => {
+        if (data.length == response.length) {
+            for (let i = 0; i < response.length; ++i) {
+                data[i] = response[i];
+            }
+            offCtx.putImageData(imageData, 0, 0);
+            ctx.drawImage(offCanvas, 0, 0);
+        }
+    });
+
+    console.log(performance.now() - st);
+}
+
 const inputs = document.querySelectorAll('[name=color]');
 for (const input of inputs) {
     input.addEventListener("change", function(evt) {
@@ -200,6 +219,8 @@ for (const input of inputs) {
             return sepia();
         case 'mosaic':
             return mosaic();
+        case 'smoothing':
+            return smoothing();
         default:
             return original();
         }

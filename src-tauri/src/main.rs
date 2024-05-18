@@ -152,6 +152,18 @@ impl ImagePathState {
 
         result
     }
+
+    pub fn make_smoothing_array(&self) -> Vec<u8> {
+        let mut result: Vec<u8> = Vec::new();
+
+        let image_path = self.state.lock().unwrap();
+        if image_path.original_pixels.len() > 0 {
+            let pixels: &Vec<u8> = &image_path.original_pixels;
+            result = to_smoothing_array(pixels, image_path.height, image_path.width);
+        }
+
+        result
+    }
 }
 
 fn to_invert_image(original_path: &str, work_path: &str) -> std::io::Result<()> { 
@@ -434,6 +446,7 @@ fn main() {
         convert_to_grayscale_im,
         convert_to_sepia_im,
         convert_to_mosaic,
+        convert_to_smoothing,
     ])
     .setup(|app| {
         let image_path_state = ImagePathState::new();
@@ -533,4 +546,9 @@ fn convert_to_sepia_im(image_path_state: State<'_, ImagePathState>) -> Vec<u8> {
 #[tauri::command]
 fn convert_to_mosaic(image_path_state: State<'_, ImagePathState>, area: u32) -> Vec<u8> {
     image_path_state.make_mosaic_array(area)
+}
+
+#[tauri::command]
+fn convert_to_smoothing(image_path_state: State<'_, ImagePathState>) -> Vec<u8> {
+    image_path_state.make_smoothing_array()
 }

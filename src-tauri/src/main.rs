@@ -397,6 +397,50 @@ fn set_pixel_in_area(pixels: &mut Vec<u8>, sub_area: &SubArea, r: u8, g: u8, b: 
     }
 }
 
+fn calc_luminance_array(pixels: &Vec<u8>) -> Vec<i16> {
+    let mut result = Vec::with_capacity(pixels.len() / 4);
+
+    for i in (0..pixels.len()).step_by(4) {
+        let lmn = pixels[i] as f64 * 0.299
+            + pixels[i + 1] as f64 * 0.587
+            + pixels[i + 2] as f64 * 0.114;
+
+        result[i / 4] = lmn as i16;
+    }
+
+    result
+}
+
+fn calc_red_chrominance_array(pixels: &Vec<u8>) -> Vec<i16> {
+    let mut result = Vec::with_capacity(pixels.len() / 4);
+
+    for i in (0..pixels.len()).step_by(4) {
+        let cr = pixels[i] as f64 * 0.5
+            + pixels[i + 1] as f64 * -0.4187
+            + pixels[i + 2] as f64 * -0.0813
+            + 128.0;
+
+        result[i / 4] = cr as i16;
+    }
+
+    result
+}
+
+fn calc_blue_chrominance_array(pixels: &Vec<u8>) -> Vec<i16> {
+    let mut result = Vec::with_capacity(pixels.len() / 4);
+
+    for i in (0..pixels.len()).step_by(4) {
+        let cb = pixels[i] as f64 * -0.167
+            + pixels[i + 1] as f64 * -0.3313
+            + pixels[i + 2] as f64 * -0.5
+            + 128.0;
+
+        result[i / 4] = cb as i16;
+    }
+
+    result
+}
+
 fn to_smoothing_array(pixels: &Vec<u8>, height: u32, width: u32) -> Vec<u8> {
     let mut result = pixels.to_vec();
 

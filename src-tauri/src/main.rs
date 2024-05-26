@@ -397,6 +397,50 @@ fn set_pixel_in_area(pixels: &mut Vec<u8>, sub_area: &SubArea, r: u8, g: u8, b: 
     }
 }
 
+fn calc_luminance_array(pixels: &Vec<u8>) -> Vec<i16> {
+    let mut result = Vec::with_capacity(pixels.len() / 4);
+
+    for i in (0..pixels.len()).step_by(4) {
+        let lmn = pixels[i] as f64 * 0.299
+            + pixels[i + 1] as f64 * 0.587
+            + pixels[i + 2] as f64 * 0.114;
+
+        result.push(lmn as i16);
+    }
+
+    result
+}
+
+fn calc_blue_chrominance_array(pixels: &Vec<u8>) -> Vec<i16> {
+    let mut result = Vec::with_capacity(pixels.len() / 4);
+
+    for i in (0..pixels.len()).step_by(4) {
+        let cb = pixels[i] as f64 * -0.167
+            + pixels[i + 1] as f64 * -0.3313
+            + pixels[i + 2] as f64 * 0.5
+            + 128.0;
+
+        result.push(cb as i16);
+    }
+
+    result
+}
+
+fn calc_red_chrominance_array(pixels: &Vec<u8>) -> Vec<i16> {
+    let mut result = Vec::with_capacity(pixels.len() / 4);
+
+    for i in (0..pixels.len()).step_by(4) {
+        let cr = pixels[i] as f64 * 0.5
+            + pixels[i + 1] as f64 * -0.4187
+            + pixels[i + 2] as f64 * -0.0813
+            + 128.0;
+
+        result.push(cr as i16);
+    }
+
+    result
+}
+
 fn to_smoothing_array(pixels: &Vec<u8>, height: u32, width: u32) -> Vec<u8> {
     let mut result = pixels.to_vec();
 
@@ -404,26 +448,50 @@ fn to_smoothing_array(pixels: &Vec<u8>, height: u32, width: u32) -> Vec<u8> {
         return result;
     }
 
-    for y in 1..height - 1 {
-        let row_p = ((y - 1) * width * 4) as usize;
-        let row_c = (y * width * 4) as usize;
-        let row_n = ((y + 1) * width * 4) as usize;
+    let lmn_ary = calc_luminance_array(pixels);
+    let cb_ary = calc_blue_chrominance_array(pixels);
+    let cr_ary = calc_red_chrominance_array(pixels);
 
-        for x in (4..(width as usize - 1) * 4).step_by(4) {
-            for i in 0..3 {
-                let mut acc = 0;
-                acc += pixels[row_p + x - 4 + i] as u32;
-                acc += pixels[row_p + x + i] as u32;
-                acc += pixels[row_p + x + 4 + i] as u32;
-                acc += pixels[row_c + x - 4 + i] as u32;
-                acc += pixels[row_c + x + i] as u32;
-                acc += pixels[row_c + x + 4 + i] as u32;
-                acc += pixels[row_n + x - 4 + i] as u32;
-                acc += pixels[row_n + x + i] as u32;
-                acc += pixels[row_n + x + 4 + i] as u32;
+    let mut smoothing_ary = lmn_ary.to_vec();
 
-                result[row_c + x + i] = calc_pixel_average(acc, 9);
-            }
+    for y in 1..height as usize - 1{
+        let yp = (y - 1) * width as usize;
+        let yn = (y + 1) * width as usize;
+
+        for x in 1..width as usize - 1 {
+            let mut acc = 0;
+            acc += lmn_ary[yp + x - 1];
+            acc += lmn_ary[yp + x];
+            acc += lmn_ary[yp + x + 1];
+            acc += lmn_ary[y + x - 1];
+            acc += lmn_ary[y + x];
+            acc += lmn_ary[y + x + 1];
+            acc += lmn_ary[yn + x - 1];
+            acc += lmn_ary[yn + x];
+            acc += lmn_ary[yn + x + 1];
+
+            let lmn = acc / 9;
+            smoothing_ary[y + x] = if lmn > 255 { 255 } else { lmn };
+        }
+
+        for i in (0..pixels.len()).step_by(4) {
+            let j = i / 4;
+
+            let y = smoothing_ary[j];
+            let cb = cb_ary[j] - 128;
+            let cr = cr_ary[j] - 128;
+
+            let r = y as f64 + 45.0 / 32.0 * cr as f64;
+            let g = y as f64 - 11.0 / 32.0 * cb as f64 - 23.0 / 32.0 * cr as f64;
+            let b = y as f64 + 113.0 / 64.0 * cb as f64;
+
+            let r = if r > 255.0 { 255 as u8 } else if r < 0.0 { 0 as u8 } else { r as u8 };
+            let g = if g > 255.0 { 255 as u8 } else if g < 0.0 { 0 as u8 } else { g as u8 };
+            let b = if b > 255.0 { 255 as u8 } else if b < 0.0 { 0 as u8 } else { b as u8 };
+
+            result[i] = r;
+            result[i + 1] = g;
+            result[i + 2] = b;
         }
     }
 

@@ -473,26 +473,23 @@ fn to_smoothing_array(pixels: &Vec<u8>, height: u32, width: u32) -> Vec<u8> {
             let lmn = acc / 9;
             smoothing_ary[y + x] = if lmn > 255 { 255 } else { lmn };
         }
+    }
 
-        for i in (0..pixels.len()).step_by(4) {
-            let j = i / 4;
+    for i in (0..pixels.len()).step_by(4) {
+        let j = i / 4;
 
-            let y = smoothing_ary[j];
-            let cb = cb_ary[j] - 128;
-            let cr = cr_ary[j] - 128;
+        let y = smoothing_ary[j];
+        let cb = cb_ary[j] - 128;
+        let cr = cr_ary[j] - 128;
 
-            let r = y as f64 + 45.0 / 32.0 * cr as f64;
-            let g = y as f64 - 11.0 / 32.0 * cb as f64 - 23.0 / 32.0 * cr as f64;
-            let b = y as f64 + 113.0 / 64.0 * cb as f64;
+        let r = (y as f64 + 45.0 / 32.0 * cr as f64).clamp(0.0, 255.0) as u8;
+        let g = (y as f64 - 11.0 / 32.0 * cb as f64 - 23.0 / 32.0 * cr as f64)
+            .clamp(0.0, 255.0) as u8;
+        let b = (y as f64 + 113.0 / 64.0 * cb as f64).clamp(0.0, 255.0) as u8;
 
-            let r = if r > 255.0 { 255 as u8 } else if r < 0.0 { 0 as u8 } else { r as u8 };
-            let g = if g > 255.0 { 255 as u8 } else if g < 0.0 { 0 as u8 } else { g as u8 };
-            let b = if b > 255.0 { 255 as u8 } else if b < 0.0 { 0 as u8 } else { b as u8 };
-
-            result[i] = r;
-            result[i + 1] = g;
-            result[i + 2] = b;
-        }
+        result[i] = r;
+        result[i + 1] = g;
+        result[i + 2] = b;
     }
 
     result

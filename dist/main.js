@@ -41,6 +41,8 @@ const original = function() {
 
         img.src = imgSrc;
         ctx.drawImage(img, 0, 0, 500, 392);
+    }).catch(error => {
+        console.error("Failed to get original path in original():", error);
     });
 }
 
@@ -240,6 +242,8 @@ document.getElementById("file_select").addEventListener('click', function() {
                 img.src = imgSrc;
 
                 originalSrc = imgSrc;
+            }).catch(error => {
+                console.error("Failed to get original path in file_select:", error);
             });
             document.getElementById("original").checked = true;
             setsOriginalPixels = true;

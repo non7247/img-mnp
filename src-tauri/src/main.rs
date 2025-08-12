@@ -74,14 +74,18 @@ impl ImagePathState {
         println!("heght: {}, width: {}", image_path.height, image_path.width);
     }
 
-    pub fn get_original(&self) -> String {
-        let image_path = self.state.lock().unwrap();
-
-        image_path.original.clone()
+    pub fn get_original(&self) -> Result<String, String> {
+        match self.state.lock() {
+            Ok(image_path) => Ok(image_path.original.clone()),
+            Err(e) => Err(format!("Failed to acquire lock on ImagePathState: {}", e)),
+        }
     }
 
-    pub fn make_work_path(&self) -> String {
-        let mut image_path = self.state.lock().unwrap();
+    pub fn make_work_path(&self) -> Result<String, String> {
+        let mut image_path = match self.state.lock() {
+            Ok(state) => state,
+            Err(e) => return Err(format!("Failed to acquire lock on ImagePathState: {}", e)),
+        };
 
         let original_path = Path::new(&image_path.original);
         let file_name = match original_path
@@ -90,11 +94,11 @@ impl ImagePathState {
                 Some(s) => s,
                 None => {
                     image_path.work = String::from("");
-                    return image_path.work.clone();
+                    return Ok(image_path.work.clone());
                 },
         };
 
-        let work_name = format!("$$$_{}", file_name);
+        let work_name = format!("$$_{}", file_name);
         let work_path = original_path.with_file_name(work_name);
 
         image_path.work = match work_path.to_str() {
@@ -102,7 +106,7 @@ impl ImagePathState {
             None => String::from(""),
         };
         image_path.work = image_path.work.replace("\\", "/");
-        image_path.work.clone()
+        Ok(image_path.work.clone())
     }
 
     pub fn make_invert_array(&self) -> Vec<u8> {
@@ -166,12 +170,12 @@ impl ImagePathState {
     }
 }
 
-fn to_invert_image(original_path: &str, work_path: &str) -> std::io::Result<()> { 
+fn to_invert_image(original_path: &str, work_path: &str) -> Result<(), Box<dyn std::error::Error>> {
     if Path::new(work_path).exists() {
         fs::remove_file(work_path)?;
     }
 
-    let img = image::open(original_path).unwrap();
+    let img = image::open(original_path)?;
     let mut img = img.to_rgb8();
 
     for (_x, _y, pixel) in img.enumerate_pixels_mut() {
@@ -181,17 +185,17 @@ fn to_invert_image(original_path: &str, work_path: &str) -> std::io::Result<()> 
         *pixel = image::Rgb([r, g, b]);
     }
 
-    img.save(work_path).unwrap();
+    img.save(work_path)?;
 
     Ok(())
 }
 
-fn to_grayscale_image(original_path: &str, work_path: &str) -> std::io::Result<()> {
+fn to_grayscale_image(original_path: &str, work_path: &str) -> Result<(), Box<dyn std::error::Error>> {
     if Path::new(work_path).exists() {
         fs::remove_file(work_path)?;
     }
 
-    let img = image::open(original_path).unwrap();
+    let img = image::open(original_path)?;
     let mut img = img.to_rgb8();
 
     for (_x, _y, pixel) in img.enumerate_pixels_mut() {
@@ -200,17 +204,17 @@ fn to_grayscale_image(original_path: &str, work_path: &str) -> std::io::Result<(
         *pixel = image::Rgb([gray, gray, gray]);
     }
 
-    img.save(work_path).unwrap();
+    img.save(work_path)?;
 
     Ok(())
 }
 
-fn to_sepia_image(original_path: &str, work_path: &str) -> std::io::Result<()> {
+fn to_sepia_image(original_path: &str, work_path: &str) -> Result<(), Box<dyn std::error::Error>> {
     if Path::new(work_path).exists() {
         fs::remove_file(work_path)?;
     }
 
-    let img = image::open(original_path).unwrap();
+    let img = image::open(original_path)?;
     let mut img = img.to_rgb8();
 
     for (_x, _y, pixel) in img.enumerate_pixels_mut() {
@@ -225,7 +229,7 @@ fn to_sepia_image(original_path: &str, work_path: &str) -> std::io::Result<()> {
         *pixel = image::Rgb([r, g, b]);
     }
 
-    img.save(work_path).unwrap();
+    img.save(work_path)?;
 
     Ok(())
 }
@@ -445,6 +449,7 @@ fn to_smoothing_array(pixels: &Vec<u8>, height: u32, width: u32) -> Vec<u8> {
     let mut result = pixels.to_vec();
 
     if pixels.len() != height as usize * width as usize * 4 {
+        println!("len={}, height={}, width={}", pixels.len(), height, width);
         return result;
     }
 
@@ -529,7 +534,7 @@ fn set_original_path(image_path_state: State<'_, ImagePathState>, path: &str) {
 }
 
 #[tauri::command]
-fn get_original_path(image_path_state: State<'_, ImagePathState>) -> String {
+fn get_original_path(image_path_state: State<'_, ImagePathState>) -> Result<String, String> {
     image_path_state.get_original()
 }
 
@@ -540,42 +545,33 @@ fn set_original_pixels(image_path_state: State<'_, ImagePathState>,
 }
 
 #[tauri::command]
-fn convert_to_invert(image_path_state: State<'_, ImagePathState>) -> String {
-    let original_path = image_path_state.get_original();
-    let work_path = image_path_state.make_work_path();
+fn convert_to_invert(image_path_state: State<'_, ImagePathState>) -> Result<String, String> {
+    let original_path = image_path_state.get_original()?;
+    let work_path = image_path_state.make_work_path()?;
 
-    if let Err(err) = to_invert_image(&original_path, &work_path) {
-        println!("{}", err);
-        return String::from("");
-    }
+    to_invert_image(&original_path, &work_path).map_err(|e| e.to_string())?;
 
-    work_path
+    Ok(work_path)
 }
 
 #[tauri::command]
-fn convert_to_grayscale(image_path_state: State<'_, ImagePathState>) -> String {
-    let original_path = image_path_state.get_original();
-    let work_path = image_path_state.make_work_path();
+fn convert_to_grayscale(image_path_state: State<'_, ImagePathState>) -> Result<String, String> {
+    let original_path = image_path_state.get_original()?;
+    let work_path = image_path_state.make_work_path()?;
 
-    if let Err(err) = to_grayscale_image(&original_path, &work_path) {
-        println!("{}", err);
-        return String::from("");
-    }
+    to_grayscale_image(&original_path, &work_path).map_err(|e| e.to_string())?;
 
-    work_path
+    Ok(work_path)
 }
 
 #[tauri::command]
-fn convert_to_sepia(image_path_state: State<'_, ImagePathState>) -> String {
-    let original_path = image_path_state.get_original();
-    let work_path = image_path_state.make_work_path();
+fn convert_to_sepia(image_path_state: State<'_, ImagePathState>) -> Result<String, String> {
+    let original_path = image_path_state.get_original()?;
+    let work_path = image_path_state.make_work_path()?;
 
-    if let Err(err) = to_sepia_image(&original_path, &work_path) {
-        println!("{}", err);
-        return String::from("");
-    }
+    to_sepia_image(&original_path, &work_path).map_err(|e| e.to_string())?;
 
-    work_path
+    Ok(work_path)
 }
 
 #[tauri::command]

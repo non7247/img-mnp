@@ -52,26 +52,34 @@ impl ImagePathState {
         }
     }
 
-    pub fn set_original(&self, s: &str) {
-        let mut image_path = self.state.lock().unwrap();
-
-        image_path.original = s.to_string();
+    pub fn set_original(&self, s: &str) -> Result<(), String> {
+        match self.state.lock() {
+            Ok(mut image_path) => {
+                image_path.original = s.to_string();
+                Ok(())
+            },
+            Err(e) => Err(format!("Failed to acquire lock on ImagePathState: {}", e)),
+        }
     }
 
-    pub fn set_original_pixels(&self, pixels: &Vec<u8>, height: u32, width: u32) {
-        let mut image_path = self.state.lock().unwrap();
+    pub fn set_original_pixels(&self, pixels: &Vec<u8>, height: u32, width: u32) -> Result<(), String> {
+        match self.state.lock() {
+            Ok(mut image_path) => {
+                image_path.original_pixels.clear();
+                image_path.original_pixels.reserve(pixels.len());
+                for pixel in pixels {
+                    image_path.original_pixels.push(*pixel);
+                }
 
-        image_path.original_pixels.clear();
-        image_path.original_pixels.reserve(pixels.len());
-        for pixel in pixels {
-            image_path.original_pixels.push(*pixel);
+                image_path.width = width;
+                image_path.height = height;
+
+                println!("original_pixels.len: {}", image_path.original_pixels.len());
+                println!("heght: {}, width: {}", image_path.height, image_path.width);
+                Ok(())
+            },
+            Err(e) => Err(format!("Failed to acquire lock on ImagePathState: {}", e)),
         }
-
-        image_path.width = width;
-        image_path.height = height;
-
-        println!("original_pixels.len: {}", image_path.original_pixels.len());
-        println!("heght: {}, width: {}", image_path.height, image_path.width);
     }
 
     pub fn get_original(&self) -> Result<String, String> {
@@ -98,7 +106,7 @@ impl ImagePathState {
                 },
         };
 
-        let work_name = format!("$$_{}", file_name);
+        let work_name = format!("$_{}", file_name);
         let work_path = original_path.with_file_name(work_name);
 
         image_path.work = match work_path.to_str() {
@@ -109,64 +117,74 @@ impl ImagePathState {
         Ok(image_path.work.clone())
     }
 
-    pub fn make_invert_array(&self) -> Vec<u8> {
-        let mut result: Vec<u8> = Vec::new();
-
-        let image_path = self.state.lock().unwrap();
-        if image_path.original_pixels.len() > 0 {
-            let pixels = &image_path.original_pixels;
-            result = to_invert_array(pixels);
+    pub fn make_invert_array(&self) -> Result<Vec<u8>, String> {
+        match self.state.lock() {
+            Ok(image_path) => {
+                let mut result: Vec<u8> = Vec::new();
+                if image_path.original_pixels.len() > 0 {
+                    let pixels = &image_path.original_pixels;
+                    result = to_invert_array(pixels);
+                }
+                Ok(result)
+            }
+            Err(e) => Err(format!("Failed to acquire lock on ImagePathState: {}", e)),
         }
-
-        result
     }
 
-    pub fn make_grayscale_array(&self) -> Vec<u8> {
-        let mut result: Vec<u8> = Vec::new();
-
-        let image_path = self.state.lock().unwrap();
-        if image_path.original_pixels.len() > 0 {
-            let pixels = &image_path.original_pixels;
-            result = to_grayscale_array(pixels);
+    pub fn make_grayscale_array(&self) -> Result<Vec<u8>, String> {
+        match self.state.lock() {
+            Ok(image_path) => {
+                let mut result: Vec<u8> = Vec::new();
+                if image_path.original_pixels.len() > 0 {
+                    let pixels = &image_path.original_pixels;
+                    result = to_grayscale_array(pixels);
+                }
+                Ok(result)
+            }
+            Err(e) => Err(format!("Failed to acquire lock on ImagePathState: {}", e)),
         }
-
-        result
     }
 
-    pub fn make_sepia_array(&self) -> Vec<u8> {
-        let mut result: Vec<u8> = Vec::new();
-
-        let image_path = self.state.lock().unwrap();
-        if image_path.original_pixels.len() > 0 {
-            let pixels = &image_path.original_pixels;
-            result = to_sepia_array(pixels);
+    pub fn make_sepia_array(&self) -> Result<Vec<u8>, String> {
+        match self.state.lock() {
+            Ok(image_path) => {
+                let mut result: Vec<u8> = Vec::new();
+                if image_path.original_pixels.len() > 0 {
+                    let pixels = &image_path.original_pixels;
+                    result = to_sepia_array(pixels);
+                }
+                Ok(result)
+            }
+            Err(e) => Err(format!("Failed to acquire lock on ImagePathState: {}", e)),
         }
-
-        result
     }
 
-    pub fn make_mosaic_array(&self, area: u32) -> Vec<u8> {
-        let mut result: Vec<u8> = Vec::new();
-
-        let image_path = self.state.lock().unwrap();
-        if image_path.original_pixels.len() > 0 {
-            let pixels = &image_path.original_pixels;
-            result = to_mosaic_array(pixels, image_path.height, image_path.width, area);
+    pub fn make_mosaic_array(&self, area: u32) -> Result<Vec<u8>, String> {
+        match self.state.lock() {
+            Ok(image_path) => {
+                let mut result: Vec<u8> = Vec::new();
+                if image_path.original_pixels.len() > 0 {
+                    let pixels = &image_path.original_pixels;
+                    result = to_mosaic_array(pixels, image_path.height, image_path.width, area);
+                }
+                Ok(result)
+            }
+            Err(e) => Err(format!("Failed to acquire lock on ImagePathState: {}", e)),
         }
-
-        result
     }
 
-    pub fn make_smoothing_array(&self) -> Vec<u8> {
-        let mut result: Vec<u8> = Vec::new();
-
-        let image_path = self.state.lock().unwrap();
-        if image_path.original_pixels.len() > 0 {
-            let pixels: &Vec<u8> = &image_path.original_pixels;
-            result = to_smoothing_array(pixels, image_path.height, image_path.width);
+    pub fn make_smoothing_array(&self) -> Result<Vec<u8>, String> {
+        match self.state.lock() {
+            Ok(image_path) => {
+                let mut result: Vec<u8> = Vec::new();
+                if image_path.original_pixels.len() > 0 {
+                    let pixels: &Vec<u8> = &image_path.original_pixels;
+                    result = to_smoothing_array(pixels, image_path.height, image_path.width);
+                }
+                Ok(result)
+            }
+            Err(e) => Err(format!("Failed to acquire lock on ImagePathState: {}", e)),
         }
-
-        result
     }
 }
 
@@ -529,8 +547,8 @@ fn main() {
 }
 
 #[tauri::command]
-fn set_original_path(image_path_state: State<'_, ImagePathState>, path: &str) {
-    image_path_state.set_original(path);
+fn set_original_path(image_path_state: State<'_, ImagePathState>, path: &str) -> Result<(), String> {
+    image_path_state.set_original(path)
 }
 
 #[tauri::command]
@@ -540,8 +558,8 @@ fn get_original_path(image_path_state: State<'_, ImagePathState>) -> Result<Stri
 
 #[tauri::command]
 fn set_original_pixels(image_path_state: State<'_, ImagePathState>, 
-                       pixels: Vec<u8>, height: u32, width: u32) {
-    image_path_state.set_original_pixels(&pixels, height, width);
+                       pixels: Vec<u8>, height: u32, width: u32) -> Result<(), String> {
+    image_path_state.set_original_pixels(&pixels, height, width)
 }
 
 #[tauri::command]
@@ -590,26 +608,26 @@ fn convert_to_sepia_array(pixels: Vec<u8>) -> Vec<u8> {
 }
 
 #[tauri::command]
-fn convert_to_invert_im(image_path_state: State<'_, ImagePathState>) -> Vec<u8> {
+fn convert_to_invert_im(image_path_state: State<'_, ImagePathState>) -> Result<Vec<u8>, String> {
     image_path_state.make_invert_array()
 }
 
 #[tauri::command]
-fn convert_to_grayscale_im(image_path_state: State<'_, ImagePathState>) -> Vec<u8> {
+fn convert_to_grayscale_im(image_path_state: State<'_, ImagePathState>) -> Result<Vec<u8>, String> {
     image_path_state.make_grayscale_array()
 }
 
 #[tauri::command]
-fn convert_to_sepia_im(image_path_state: State<'_, ImagePathState>) -> Vec<u8> {
+fn convert_to_sepia_im(image_path_state: State<'_, ImagePathState>) -> Result<Vec<u8>, String> {
     image_path_state.make_sepia_array()
 }
 
 #[tauri::command]
-fn convert_to_mosaic(image_path_state: State<'_, ImagePathState>, area: u32) -> Vec<u8> {
+fn convert_to_mosaic(image_path_state: State<'_, ImagePathState>, area: u32) -> Result<Vec<u8>, String> {
     image_path_state.make_mosaic_array(area)
 }
 
 #[tauri::command]
-fn convert_to_smoothing(image_path_state: State<'_, ImagePathState>) -> Vec<u8> {
+fn convert_to_smoothing(image_path_state: State<'_, ImagePathState>) -> Result<Vec<u8>, String> {
     image_path_state.make_smoothing_array()
 }
